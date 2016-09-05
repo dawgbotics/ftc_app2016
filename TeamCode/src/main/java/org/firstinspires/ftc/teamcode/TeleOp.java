@@ -228,15 +228,15 @@ public class TeleOp extends OpMode {
         //sends data back to the divers containing
         //servo positions, lift power, and drive motor powers
         telemetry.addData("Text", "*** Robot Data***");
-        telemetry.addData("arm", String.format("%.2f", armPos));
-        telemetry.addData("climber", String.format("%.2f", climberPos));
-        telemetry.addData("left climber", String.format("%.2f", leftClimberPos));
-        telemetry.addData("right climber", String.format("%.2f", rightClimberPos));
-        telemetry.addData("front guard", String.format("%.2f", guardPos));
-        telemetry.addData("rear lifter", String.format("%.2f", lifterPos));
-        telemetry.addData("lift Power", String.format("%.2f", liftPower));
-        telemetry.addData("left tgt pwr", String.format("%.2f", left));
-        telemetry.addData("right tgt pwr", String.format("%.2f", right));
+        telemetry.addData("arm", "%.2f", armPos);
+        telemetry.addData("climber", "%.2f", climberPos);
+        telemetry.addData("left climber", "%.2f", leftClimberPos);
+        telemetry.addData("right climber", "%.2f", rightClimberPos);
+        telemetry.addData("front guard", "%.2f", guardPos);
+        telemetry.addData("rear lifter", "%.2f", lifterPos);
+        telemetry.addData("lift Power", "%.2f", liftPower);
+        telemetry.addData("left tgt pwr", "%.2f", left);
+        telemetry.addData("right tgt pwr", "%.2f", right);
 
     }
 
