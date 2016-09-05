@@ -50,11 +50,11 @@ public class TeleOp extends OpMode {
 
     //initializes all motors
     DcMotor motorRight1;
-    DcMotor motorleft2;
+    DcMotor motorLeft2;
     DcMotor motorRight3;
-    DcMotor motorleft4;
+    DcMotor motorLeft4;
     DcMotor motorRight5;
-    DcMotor motorleft6;
+    DcMotor motorLeft6;
     DcMotor motorLift1;
     DcMotor motorLift2;
 
@@ -80,22 +80,22 @@ public class TeleOp extends OpMode {
 
         //sets all motors made in the config file set to sides and numbers
         motorRight1 = hardwareMap.dcMotor.get("motor_1");
-        motorleft2 = hardwareMap.dcMotor.get("motor_2");
+        motorLeft2 = hardwareMap.dcMotor.get("motor_2");
         motorRight3 = hardwareMap.dcMotor.get("motor_3");
-        motorleft4 = hardwareMap.dcMotor.get("motor_4");
+        motorLeft4 = hardwareMap.dcMotor.get("motor_4");
         motorRight5 = hardwareMap.dcMotor.get("motor_5");
-        motorleft6 = hardwareMap.dcMotor.get("motor_6");
+        motorLeft6 = hardwareMap.dcMotor.get("motor_6");
         //sets lift motors to lift1(right), and lift2(left)
         motorLift1 = hardwareMap.dcMotor.get("motor_7");
         motorLift2 = hardwareMap.dcMotor.get("motor_8");
 
         //sets all motors directions - right motors forward, left backward
         motorRight1.setDirection(DcMotor.Direction.FORWARD);
-        motorleft2.setDirection(DcMotor.Direction.REVERSE);
+        motorLeft2.setDirection(DcMotor.Direction.REVERSE);
         motorRight3.setDirection(DcMotor.Direction.FORWARD);
-        motorleft4.setDirection(DcMotor.Direction.REVERSE);
+        motorLeft4.setDirection(DcMotor.Direction.REVERSE);
         motorRight5.setDirection(DcMotor.Direction.FORWARD);
-        motorleft6.setDirection(DcMotor.Direction.REVERSE);
+        motorLeft6.setDirection(DcMotor.Direction.REVERSE);
         motorLift1.setDirection(DcMotor.Direction.FORWARD);
         motorLift2.setDirection(DcMotor.Direction.REVERSE);
 
@@ -242,24 +242,24 @@ public class TeleOp extends OpMode {
 
     @Override
     public void stop() {
-    }
+    }//
 
     //move function which sets all drive motors to run without encoders,
-    //so that they do not fight eachother. Then sets the speed of each
+    //so that they do not fight each other. Then sets the speed of each
     //one to the imputed values of right speed and left speed respectively.
     public void move(double speedR, double speedL) {
         motorRight1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        motorleft2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorLeft2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motorRight3.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        motorleft4.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorLeft4.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motorRight5.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        motorleft6.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorLeft6.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         motorRight1.setPower(speedR);
-        motorleft2.setPower(speedL);
+        motorLeft2.setPower(speedL);
         motorRight3.setPower(speedR);
-        motorleft4.setPower(speedL);
+        motorLeft4.setPower(speedL);
         motorRight5.setPower(speedR);
-        motorleft6.setPower(speedL);
+        motorLeft6.setPower(speedL);
     }
 }
