@@ -31,11 +31,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
 package org.firstinspires.ftc.teamcode;
 
+//import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name="TeleOp", group="TeleOp")
+//@Disabled
 public class TeleOp extends OpMode {
 
     //positions for the servo to be set to at the end of each loop
@@ -68,10 +71,6 @@ public class TeleOp extends OpMode {
 
     boolean playerJoy;
     boolean temp;
-
-    //constructor
-    public TeleOp() {
-    }
 
     @Override
     public void init() {
@@ -239,10 +238,6 @@ public class TeleOp extends OpMode {
         telemetry.addData("right tgt pwr", "%.2f", right);
 
     }
-
-    @Override
-    public void stop() {
-    }//
 
     //move function which sets all drive motors to run without encoders,
     //so that they do not fight each other. Then sets the speed of each
