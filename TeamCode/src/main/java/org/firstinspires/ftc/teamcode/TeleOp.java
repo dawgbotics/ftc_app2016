@@ -95,7 +95,7 @@ public class TeleOp extends OpMode {
             } else if (gamepad2.left_bumper) {
                 armPos -= .001;
             }
-            //clips and moves servo to specified position.
+            //clips and moves the servo to specified position.
             armPos = Range.clip(armPos, 0, 1);
             arm.setPosition(armPos);
         }
