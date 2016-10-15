@@ -18,12 +18,9 @@ For technical questions regarding the SDK, please visit the FTC Technology forum
 
   http://ftcforum.usfirst.org/forumdisplay.php?156-FTC-Technology
 
-**************************************************************************************
-
 Version 2.31 (released on 16.10.06)
-  * Blockly programming mode - Removed unnecesary idle() call from blocks for new project.
 
-**************************************************************************************
+Version 2.35 (released on 16.10.06)
 
 Version 2.30 (released on 16.10.05)
   * Blockly programming mode:
