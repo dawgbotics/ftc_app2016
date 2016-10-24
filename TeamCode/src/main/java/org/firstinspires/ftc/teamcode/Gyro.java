@@ -1,8 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-/**
- * doesnt work
- */
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.I2cDevice;
@@ -11,6 +8,7 @@ import com.qualcomm.robotcore.hardware.I2cDeviceSynchImpl;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 public class Gyro {
+    //I2C device addresses
     final static int CTRL1 = 0x20;
     final static int CTRL4 = 0x23;
     final static int STATUS = 0xA7;
@@ -24,24 +22,25 @@ public class Gyro {
 
     final static int LOW_ODR = 0x39;
 
+    //instance variables
     private double angle = 0;
     private ElapsedTime timer;
     private double oldTime = 0;
+    final static double OFFSET = 18.;
+    final static double SCALE = 1 / 425;
 
     static final I2cAddr GYRO_ADDRESS = new I2cAddr(0x6B);
     private I2cDevice gyro;
     private I2cDeviceSynch gyroReader;
 
-    private HardwareMap hwMap = null;
-
-    final static double OFFSET = 18;
-    final static double SCALE = 1 / 425;
-
-    public Gyro(HardwareMap hardwareMap,
-                                String gyroName//,
-                                /*double milliSeconds,*/
-                                /*int gain*/) {
-        hwMap = hardwareMap;
+    /**
+     * creates gyro object and initializes the I2C device and the
+     * I2C device reader.
+     *
+     * @param hardwareMap hardware map of robot
+     * @param gyroName name of gyro within hardware map
+     */
+    public Gyro(HardwareMap hardwareMap, String gyroName) {
         timer = new ElapsedTime();
         gyro = hardwareMap.i2cDevice.get(gyroName);
         gyroReader = new I2cDeviceSynchImpl(gyro, GYRO_ADDRESS, false);
@@ -51,40 +50,55 @@ public class Gyro {
         gyroReader.write8(CTRL1, 0x6F, true);// Set integration time
     }
 
+    /**
+     * Starts gyro polling by reading the status from it
+     *
+     * @return returns the current status of the gyro
+     */
     public byte startPolling() {
-        byte status = gyroReader.read8(STATUS);
-        return status;
+        return gyroReader.read8(STATUS);
     }
 
-    /*public byte getZH(byte status) {
-        byte zDataH = 0;
-        if(status >> 2 == 0x03){
-            zDataH = gyroReader.read8(OUT_Z_H);
-        }
-        return zDataH;
-    }
-
-    public byte getZL(byte status) {
-        byte zDataL = 0;
-        if(status >> 2 == 0x03){
-            zDataL = gyroReader.read8(0x2c);
-        }
-        return zDataL;
-    }*/
-
+    /**
+     * resets gyro, setting angle back to zero
+     */
     public void reset() {
         this.angle = 0;
     }
 
-    public byte getZH() {
+    /**
+     * gives current angular velocity across z axis
+     *
+     * @return z angular velocity
+     */
+    public byte getZ() {
         return gyroReader.read8(OUT_Z_H);
     }
 
-    public int getAngle() {
-        int z = this.getZH();
-        double diff = (z + Math.abs(z) / 18.) * (timer.milliseconds() - oldTime);
+    /**
+     * Reads data from gyro, setting angle accordingly
+     */
+    public void read() {
+        int z = this.getZ();
+        double diff = (z + Math.abs(z) / OFFSET) * (timer.milliseconds() - oldTime);
         angle += diff;
         oldTime = timer.milliseconds();
+    }
+
+    /**
+     * returns the current angle
+     *
+     * @return current angle
+     */
+    public int getAngle() {
         return (int)Math.round(angle / SCALE);
+    }
+
+    /**
+     * closes both I2C devices
+     */
+    public void close() {
+        gyro.close();
+        gyroReader.close();
     }
 }

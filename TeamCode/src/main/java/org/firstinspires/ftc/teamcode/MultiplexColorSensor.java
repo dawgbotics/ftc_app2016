@@ -81,19 +81,6 @@ public class MultiplexColorSensor {
         adaReader.write8(ATIME, time, true);   // Set integration time
     }
 
-    /**
-     * Set the integration time on all the color sensors
-     * @param milliSeconds Time in millseconds
-     */
-    /*public void setIntegrationTime(double milliSeconds) {
-        int val = integrationByte(milliSeconds);
-
-        for (int i = 0; i < sensorPorts.length; i++) {
-            muxReader.write8(0x0, 1 << sensorPorts[i], true);
-            adaReader.write8(ATIME, val, true);
-        }
-    }*/
-
     private int integrationByte(double milliSeconds) {
         int count = (int)(milliSeconds/2.4);
         if (count<1)    count = 1;   // Clamp the time range
