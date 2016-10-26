@@ -23,7 +23,7 @@ public class Gyro {
     final static int LOW_ODR = 0x39;
 
     //instance variables
-    private double angle = 0;
+    private double angle = Drive.OFFSET;
     private ElapsedTime timer;
     private double oldTime = 0;
     final static double OFFSET = 18.;
@@ -63,7 +63,7 @@ public class Gyro {
      * resets gyro, setting angle back to zero
      */
     public void reset() {
-        this.angle = 0;
+        this.angle = Drive.OFFSET;
     }
 
     /**
@@ -91,7 +91,9 @@ public class Gyro {
      * @return current angle
      */
     public int getAngle() {
-        return (int)Math.round(angle / SCALE);
+        int returnAngle = (int)Math.round(angle / SCALE);
+        returnAngle %= 360;
+        return returnAngle;
     }
 
     /**
