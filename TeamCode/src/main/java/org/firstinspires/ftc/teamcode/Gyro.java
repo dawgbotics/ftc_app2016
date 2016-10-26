@@ -24,6 +24,10 @@ public class Gyro {
 
     //instance variables
     private double angle = Drive.OFFSET;
+    private double angleX = 0;
+    private double angleY = 0;
+    private double angleZ = 0;
+
     private ElapsedTime timer;
     private double oldTime = 0;
     final static double OFFSET = 18.;
@@ -76,6 +80,13 @@ public class Gyro {
     }
 
     /**
+     * returns all 6 gyro values in one byte[]
+     */
+    public byte[] getXYZ() {
+        return gyroReader.read(OUT_X_L, 6);
+    }
+
+    /**
      * Reads data from gyro, setting angle accordingly
      */
     public void read() {
@@ -83,6 +94,23 @@ public class Gyro {
         double diff = (z + Math.abs(z) / OFFSET) * (timer.milliseconds() - oldTime);
         angle += diff;
         oldTime = timer.milliseconds();
+    }
+
+    public void readXYZ() {
+        byte[] gyroCache = this.getXYZ();
+
+        int[] gyroValues = new int[3];
+        double[] diff = new double[3];
+        for (int i = 0; i < 3; i++) {
+            gyroValues[i] = (gyroCache[2 * i] & 0xFF) + (gyroCache[2 * i + 1] & 0xFF) * 256;
+
+            diff[i] = (gyroValues[i] + Math.abs(gyroValues[i]) / OFFSET) * (timer.milliseconds() - oldTime);
+        }
+
+        angleX += diff[1];
+        angleY += diff[2];
+        angleZ += diff[3];
+
     }
 
     /**
@@ -96,6 +124,17 @@ public class Gyro {
         return returnAngle;
     }
 
+    public int getAngleX() {
+        return (int) Math.round(angleX / SCALE);
+    }
+
+    public int getAngleY() {
+        return (int) Math.round(angleY / SCALE);
+    }
+
+    public int getAngleZ() {
+        return (int) Math.round(angleZ / SCALE);
+    }
     /**
      * closes both I2C devices
      */
