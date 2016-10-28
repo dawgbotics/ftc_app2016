@@ -6,13 +6,13 @@ import com.qualcomm.robotcore.util.Hardware;
 import com.qualcomm.robotcore.util.Range;
 
 public class Drive {
+    public static final double BASE_SPEED = .5;
+    public static final int OFFSET = 45;
+
     double xComp;
     double yComp;
     double rot;
     int oldGyro = OFFSET;
-
-    public static final double BASE_SPEED = .5;
-    public static final int OFFSET = 45;
 
     static final int ROT_RATIO = 100;
 
@@ -24,17 +24,17 @@ public class Drive {
     Gyro gyro;
 
     public Drive(HardwareMap hardwareMap, String gyroName) {
-        motorLeftBack = hardwareMap.dcMotor.get("left back");
-        motorLeftFront = hardwareMap.dcMotor.get("left front");
-        motorRightBack = hardwareMap.dcMotor.get("right back");
-        motorRightFront = hardwareMap.dcMotor.get("right front");
+        motorLeftBack = hardwareMap.dcMotor.get("back left");
+        motorLeftFront = hardwareMap.dcMotor.get("front left");
+        motorRightBack = hardwareMap.dcMotor.get("back right");
+        motorRightFront = hardwareMap.dcMotor.get("front right");
 
         motorLeftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motorLeftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motorRightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motorRightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        gyro = new Gyro(hardwareMap, gyroName);
+        //gyro = new Gyro(hardwareMap, gyroName);
     }
 
     public boolean driveToPosition(int targetTicks, double speed) {
@@ -80,11 +80,19 @@ public class Drive {
     }
 
     public void drive(double speed) {
+
+        motorLeftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorLeftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorRightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorRightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
         double[] speedWheel = new double[4];
 
+        int m = 0;
         for (int n = oldGyro; n < 360; n += 90) {
             //This \/ rotates the control input to make it work on each motor
-            speedWheel[n] = (xComp * Math.sin(n) + yComp * Math.cos(n) + ROT_RATIO * rot);
+            speedWheel[m] = (xComp * Math.sin(n) + yComp * Math.cos(n) + ROT_RATIO * rot);
+            m++;
         }
 
         /*
