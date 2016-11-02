@@ -80,6 +80,7 @@ public class Drive {
     }
 
     public void drive(double speed) {
+        //Keep speed <= 1 for proper scaling
 
         motorLeftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motorLeftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -88,11 +89,15 @@ public class Drive {
 
         double[] speedWheel = new double[4];
 
-        int m = 0;
-        for (int n = oldGyro; n < 360; n += 90) {
+        int m = oldGyro;
+        for (int n = 0; n <= 3; n++) {
             //This \/ rotates the control input to make it work on each motor
-            speedWheel[m] = (xComp * Math.sin(n) + yComp * Math.cos(n) + ROT_RATIO * rot);
-            m++;
+            speedWheel[n] = (xComp * Math.cos(m) + yComp * Math.sin(m) + ROT_RATIO * rot);
+            m += 90;
+            if (m > 360) {
+                m -= 360;
+            }
+
         }
 
         /*
@@ -106,10 +111,12 @@ public class Drive {
         //In order to handle the problem if the values in speedWheel[] are greater than 1,
         //this scales them so the ratio between the values stays the same, but makes sure they're
         //less than 1
-        double scaler = Math.abs(1 / max(speedWheel[0], speedWheel[1], speedWheel[2], speedWheel[3]));
+        double scaler = Math.abs(max(speedWheel[0], speedWheel[1], speedWheel[2], speedWheel[3]));
 
-        for (int n = 0; n < 4; n++) {
-            speedWheel[n] = speed * scaler * speedWheel[n];
+        if (scaler > 1) {
+            for (int n = 0; n < 4; n++) {
+                speedWheel[n] /= scaler;
+            }
         }
 
         motorRightFront.setPower(speedWheel[0]);
@@ -119,6 +126,7 @@ public class Drive {
     }
 
     public double max(double a, double b, double c, double d) {
+
         double max = a;
         double[] vals = {b, c, d};
 
@@ -131,7 +139,7 @@ public class Drive {
 
         //We can't use a long loop because it has to take less time than a phone tick, so if that ^ code doesn't
         //run fast enough, we can just use this \/ code instead.
-        /*
+/*
         a = Math.abs(a);
         b = Math.abs(b);
         c = Math.abs(c);
@@ -147,7 +155,7 @@ public class Drive {
             return b;
         }
         return a;
-        */
+*/
     }
 
     public void resetEncoders() {
