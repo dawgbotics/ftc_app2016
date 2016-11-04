@@ -14,7 +14,7 @@ public class Drive {
     double rot;
     int oldGyro = OFFSET;
 
-    static final int ROT_RATIO = 100;
+    static final double ROT_RATIO = .7;
 
     DcMotor motorLeftFront;
     DcMotor motorRightFront;
@@ -91,8 +91,8 @@ public class Drive {
 
         int m = oldGyro;
         for (int n = 0; n <= 3; n++) {
-            //This \/ rotates the control input to make it work on each motor
-            speedWheel[n] = (xComp * Math.cos(m) + yComp * Math.sin(m) + ROT_RATIO * rot);
+            //This \/ rotates the control input to make it work on each motor and assigns the initial wheel power ratios
+            speedWheel[n] = xComp * Math.cos(Math.toRadians(m)) + yComp * Math.sin(Math.toRadians(m)) + ROT_RATIO * rot;
             m += 90;
             if (m > 360) {
                 m -= 360;
@@ -112,13 +112,14 @@ public class Drive {
         //this scales them so the ratio between the values stays the same, but makes sure they're
         //less than 1
         double scaler = Math.abs(max(speedWheel[0], speedWheel[1], speedWheel[2], speedWheel[3]));
-
-        if (scaler > 1) {
+        //if the scaler is 0, it will cause a divide by 0 error
+        if (scaler != 0) {
             for (int n = 0; n < 4; n++) {
-                speedWheel[n] /= scaler;
+                speedWheel[n] *= (speed / scaler);
             }
         }
 
+        //sets the wheel powers to the appropriate ratios
         motorRightFront.setPower(speedWheel[0]);
         motorLeftFront.setPower(speedWheel[1]);
         motorLeftBack.setPower(speedWheel[2]);
@@ -126,6 +127,11 @@ public class Drive {
     }
 
     public double max(double a, double b, double c, double d) {
+
+        a = Math.abs(a);
+        b = Math.abs(b);
+        c = Math.abs(c);
+        d = Math.abs(d);
 
         double max = a;
         double[] vals = {b, c, d};
