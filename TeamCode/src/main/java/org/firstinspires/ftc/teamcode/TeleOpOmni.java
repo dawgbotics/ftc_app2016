@@ -30,6 +30,7 @@ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
 TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -68,9 +69,9 @@ public class TeleOpOmni extends OpMode {
         //If you push both bumpers, you get the really slow mode
         //If you push only one bumper, you get the slow mode
         if (gamepad1.left_bumper && gamepad1.right_bumper) {
-            speed = speed / 6;
+            speed = speed / 12;
         } else if (gamepad1.left_bumper || gamepad1.right_bumper) {
-            speed = speed / 2;
+            speed = speed / 4;
         }
 
         drive.drive(speed);
