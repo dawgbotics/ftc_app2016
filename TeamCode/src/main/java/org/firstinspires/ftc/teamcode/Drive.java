@@ -51,10 +51,10 @@ public class Drive {
     }
 
     public void useGyro() {
-        gyro.read();
+        gyro.readZ();
         double r;
         if (rot == 0) {
-            double gyroDiff = gyro.getAngle() - oldGyro;
+            double gyroDiff = gyro.getAngleZ() - oldGyro;
             //If you're moving forwards and you drift, this should correct it.
             //Accounts for if you go from 1 degree to 360 degrees which is only a difference of one degree,
             //but the bot thinks that's 359 degree difference
@@ -68,15 +68,15 @@ public class Drive {
                 r = (gyroDiff - 180) / 180; //replaced (1.5 * (gyroDiff/180)) because function of 1.5 is unknown
             }
         } else {
-            oldGyro = gyro.getAngle();
+            oldGyro = gyro.getAngleZ();
             r = rot;
         }
 
         rot = Range.clip(r, -1, 1);
 
         double temp = xComp;
-        xComp = xComp * Math.cos(gyro.getAngle()) - yComp * Math.sin(gyro.getAngle());
-        yComp = temp * Math.sin(gyro.getAngle()) + yComp * Math.cos(gyro.getAngle());
+        xComp = xComp * Math.cos(gyro.getAngleZ()) - yComp * Math.sin(gyro.getAngleZ());
+        yComp = temp * Math.sin(gyro.getAngleZ()) + yComp * Math.cos(gyro.getAngleZ());
     }
 
     public void drive(double speed) {
