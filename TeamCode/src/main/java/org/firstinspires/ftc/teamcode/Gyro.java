@@ -14,19 +14,14 @@ public class Gyro {
     final static int STATUS = 0xA7;
 
     final static int OUT_X_L = 0xA8;
-    final static int OUT_X_H = 0xA9;
-    final static int OUT_Y_L = 0xAA;
-    final static int OUT_Y_H = 0xAB;
-    final static int OUT_Z_L = 0xAC;
     final static int OUT_Z_H = 0xAD;
 
     final static int LOW_ODR = 0x39;
 
     //instance variables
-    private double angle = Drive.OFFSET;
     private double angleX = 0;
     private double angleY = 0;
-    private double angleZ = 0;
+    private double angleZ = Drive.OFFSET;
 
     private ElapsedTime timer;
     private double oldTime = 0;
@@ -67,7 +62,9 @@ public class Gyro {
      * resets gyro, setting angle back to zero
      */
     public void reset() {
-        this.angle = Drive.OFFSET;
+        this.angleZ = Drive.OFFSET;
+        this.angleY = 0;
+        this.angleX = 0;
     }
 
     /**
@@ -87,15 +84,18 @@ public class Gyro {
     }
 
     /**
-     * Reads data from gyro, setting angle accordingly
+     * Reads data from gyro, setting Z angle accordingly
      */
-    public void read() {
+    public void readZ() {
         int z = this.getZ();
         double diff = (z + Math.abs(z) / OFFSET) * (timer.milliseconds() - oldTime);
-        angle += diff;
+        angleZ += diff;
         oldTime = timer.milliseconds();
     }
 
+    /**
+     * Reads x y and z rotation values and resets all angles accordingly
+     */
     public void readXYZ() {
         byte[] gyroCache = this.getXYZ();
 
@@ -114,26 +114,30 @@ public class Gyro {
     }
 
     /**
-     * returns the current angle
-     *
-     * @return current angle
+     *  Returns the angle across the x axis
      */
-    public int getAngle() {
-        int returnAngle = (int)Math.round(angle / SCALE);
+    public int getAngleX() {
+        int returnAngle = (int)Math.round(angleX / SCALE);
         returnAngle %= 360;
         return returnAngle;
     }
 
-    public int getAngleX() {
-        return (int) Math.round(angleX / SCALE);
-    }
-
+    /**
+     *  Returns the angle across the y axis
+     */
     public int getAngleY() {
-        return (int) Math.round(angleY / SCALE);
+        int returnAngle = (int)Math.round(angleY / SCALE);
+        returnAngle %= 360;
+        return returnAngle;
     }
 
-    public int getAngleZ() {
-        return (int) Math.round(angleZ / SCALE);
+    /**
+     *  Returns the angle across the z axis
+     */
+    public int getAngleZ(){
+        int returnAngle = (int)Math.round(angleZ / SCALE);
+        returnAngle %= 360;
+        return returnAngle;
     }
     /**
      * closes both I2C devices
