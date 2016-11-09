@@ -49,6 +49,7 @@ public class TestGyroThree extends OpMode {
     public void loop() {
         ourGyro.read();
         telemetry.addData("z", ourGyro.getAngle());
+        telemetry.update();
     }
 
     @Override
