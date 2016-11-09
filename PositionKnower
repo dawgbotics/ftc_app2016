@@ -1,0 +1,72 @@
+package org.firstinspires.ftc.teamcode;
+
+import static java.lang.Math.atan;
+import static java.lang.Math.cos;
+import static java.lang.Math.pow;
+import static java.lang.Math.sin;
+import static java.lang.Math.sqrt;
+
+/**
+ * Created by dawgbotics on 11/3/16.
+ */
+
+public class PositionKnower {
+    public double[] getxyzcoords(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4) {
+        /*
+        everything is in inches
+        x1 ... as inputs are corners of image\
+        // TODO: 11/3/16
+        find out how big the camera sensor is and implement
+        fix them errors (find out how arrays work)
+        camera length in y direction
+        */
+
+
+
+        //declare return array
+        double xyz[] = new double[3];
+
+        //         0  1  2  3  4  5  6  7  8  9  10 11
+        //contains x1 y1 z1 x2 y2 z2 x3 y3 z3 x4 y4 z4 of real world rectangle
+        double rectanglepos[] = {0, 1};
+
+        //finds length on sensor right side
+        double a = sqrt( pow((x1 - x4), 2) + pow((y1 - y4), 2));
+        //finds real life length of right side
+        double A = sqrt( pow((rectanglepos[1] - rectanglepos[9]), 2) + pow((rectanglepos[2] - rectanglepos[10]), 2) + pow((rectanglepos[3] - rectanglepos[11]), 2));
+        //finds length on sensor left side
+        double c = sqrt( pow((x2 - x3), 2) + pow((y2 - y3), 2));
+        //finds real life length of left side
+        double C = sqrt( pow((rectanglepos[4] - rectanglepos[6]), 2) + pow((rectanglepos[5] - rectanglepos[7]), 2) + pow((rectanglepos[6] - rectanglepos[8]), 2));
+
+        //now, x1 ... of the inputs are converted to real world xyz coordinates
+        //however, this is only done for 1 and 2 since those are all that are needed
+        double z1;
+        double z2;
+
+        x1 = x1 * A / a;
+        y1 = y1 * A / a;
+        z1 = camYLength * A / a;
+        x2 = x2 * C / c;
+        y2 = y2 * C / c;
+        z2 = camYLength * C / c;
+
+        //now the rotation is found of the rectangle (wall) relative to the robot
+        double trot = atan( (x1 - x2) / (y1 - y2));
+
+        //temporary camera x, y assigned to be be used for rotation, respective to center of real world rectangle
+        //center from averaging coordinates
+        double tcx = -1 * (x1 + x2) / 2;
+        double tcy = -1 * (y1 + y2) / 2;
+
+        //rotate camera to be respective of rectangle and store in return list
+        xyz[1] = cos(trot) * tcx - sin(trot) * tcy;
+        xyz[2] = sin(trot) * tcx + cos(trot) * tcy;
+
+        //average zs for more accuracy
+        xyz[3] = (z1 + z2) /2;
+
+        return xyz;
+    }
+}
+
