@@ -17,10 +17,22 @@ import org.lasarobotics.vision.util.color.Color;
 import org.lasarobotics.vision.util.color.ColorGRAY;
 import org.lasarobotics.vision.util.color.ColorRGBA;
 import org.opencv.android.Utils;
+import org.opencv.core.CvType;
+import org.opencv.core.KeyPoint;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.Point;
+import org.opencv.core.Scalar;
 import org.opencv.core.Size;
+import org.opencv.features2d.DescriptorExtractor;
+import org.opencv.features2d.FeatureDetector;
+import org.opencv.features2d.Features2d;
 
+import java.io.IOException;
+
+import static org.lasarobotics.vision.android.Util.getContext;
+import static org.opencv.imgcodecs.Imgcodecs.CV_LOAD_IMAGE_COLOR;
+import static org.opencv.imgcodecs.Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE;
 import static org.opencv.imgcodecs.Imgcodecs.imread;
 
 /**
@@ -29,7 +41,7 @@ import static org.opencv.imgcodecs.Imgcodecs.imread;
  */
 public class CameraTestVisionOpMode extends TestableVisionOpMode {
 
-    Mat m;
+    Mat image;
     @Override
     public void init() {
         super.init();
@@ -46,7 +58,7 @@ public class CameraTestVisionOpMode extends TestableVisionOpMode {
          * Larger = sometimes more accurate, but also much slower
          * After this method runs, it will set the "width" and "height" of the frame
          **/
-        this.setFrameSize(new Size(800, 480));
+        this.setFrameSize(new Size(480, 320));
 
         /**
          * Enable extensions. Use what you need.
@@ -104,10 +116,22 @@ public class CameraTestVisionOpMode extends TestableVisionOpMode {
 
         // Finding keypoints and descriptors
 
-        Uri path = Uri.parse("");
-        String correctPath = path.getPath();
-        this.m = imread(correctPath);
-        Mat img = Utils.loadResource(Get);
+        this.image = new Mat(new Size(480, 320), CvType.CV_8UC1);
+        try {
+            this.image = Utils.loadResource(getContext(), R.drawable.scrn, CV_LOAD_IMAGE_GRAYSCALE);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        MatOfKeyPoint objectpoints = new MatOfKeyPoint();
+        FeatureDetector fd = FeatureDetector.create(FeatureDetector.FAST);
+        fd.detect(this.image, objectpoints);
+        MatOfKeyPoint objectdescriptors = new MatOfKeyPoint();
+        DescriptorExtractor dx = DescriptorExtractor.create(DescriptorExtractor.ORB);
+        dx.compute(this.image, objectpoints, objectdescriptors);
+        Scalar newKeypointColor = new Scalar(255, 0, 0);
+        Mat outputImage = new Mat(this.image.rows(), this.image.cols(), CV_LOAD_IMAGE_COLOR);
+        Features2d.drawKeypoints(this.image,objectpoints, outputImage, newKeypointColor, 0);
+        this.image = outputImage; 
     }
 
     @Override
@@ -150,6 +174,6 @@ public class CameraTestVisionOpMode extends TestableVisionOpMode {
         //Drawing.drawText(rgba, "Rot: " + rotation.getRotationCompensationAngle()
         //        + " (" + sensors.getScreenOrientation() + ")", new Point(0, 50), 1.0f, new ColorRGBA("#ffffff"), Drawing.Anchor.BOTTOMLEFT); //"#2196F3"
 
-        return this.m;
+        return rgba;
     }
 }
