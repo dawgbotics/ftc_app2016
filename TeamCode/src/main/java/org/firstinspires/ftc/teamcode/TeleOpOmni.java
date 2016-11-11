@@ -45,6 +45,7 @@ public class TeleOpOmni extends OpMode {
 
     @Override
     public void loop() {
+        //Gets joystick values and saves them to global variables.
         drive.xComp = gamepad1.left_stick_x;
         drive.yComp = -1 * gamepad1.left_stick_y;
         drive.rot = gamepad1.right_stick_x;
@@ -60,7 +61,7 @@ public class TeleOpOmni extends OpMode {
             drive.yComp = 0;
         }
 
-        //This \/ sets a maximum speed (of 1) if you're rotating and driving
+        //This \/ sets a maximum speed (of 1) if you're rotating and driving simultaneously
         double speed = Math.sqrt(drive.xComp * drive.xComp + drive.yComp * drive.yComp) + Math.abs(drive.rot);
         if (speed > 1) {
             speed = 1;

@@ -6,7 +6,9 @@ import com.qualcomm.robotcore.util.Hardware;
 import com.qualcomm.robotcore.util.Range;
 
 public class Drive {
+    //Initializes a factor for the speed of movement to a position
     public static final double BASE_SPEED = .5;
+    //How much the robot is rotated when we start (as in, the wheels are in a diamond, not a square)
     public static final int OFFSET = 45;
 
     double xComp;
@@ -14,6 +16,7 @@ public class Drive {
     double rot;
     int oldGyro = OFFSET;
 
+    //Scales the rotation speed by this factor
     static final double ROT_RATIO = .7;
 
     DcMotor motorLeftFront;
@@ -24,6 +27,7 @@ public class Drive {
     Gyro gyro;
 
     public Drive(HardwareMap hardwareMap, String gyroName) {
+        //Initialize motors and gyro
         motorLeftBack = hardwareMap.dcMotor.get("back left");
         motorLeftFront = hardwareMap.dcMotor.get("front left");
         motorRightBack = hardwareMap.dcMotor.get("back right");
@@ -37,8 +41,9 @@ public class Drive {
         //gyro = new Gyro(hardwareMap, gyroName);
     }
 
+    //Currently uncommented because it doesn't work BUT NEEDS COMMENTS SOMETIME IN THE FUTURE
     public boolean driveToPosition(int targetTicks, double speed) {
-        int currentTicks = (int)max(motorLeftBack.getCurrentPosition(), motorLeftFront.getCurrentPosition(),
+        int currentTicks = (int) max(motorLeftBack.getCurrentPosition(), motorLeftFront.getCurrentPosition(),
                motorRightBack.getCurrentPosition(), motorRightFront.getCurrentPosition());
         if (currentTicks <= targetTicks) {
             speed *= BASE_SPEED + ((targetTicks - currentTicks) / targetTicks) * (1 - BASE_SPEED);
@@ -58,7 +63,7 @@ public class Drive {
             //If you're moving forwards and you drift, this should correct it.
             //Accounts for if you go from 1 degree to 360 degrees which is only a difference of one degree,
             //but the bot thinks that's 359 degree difference
-            //Scales -180 to 180 -> -1 to 1
+            //Scales -180 to 180 ==> -1 to 1
             if (gyroDiff < -180) {
                 r = (180 + gyroDiff) / 180; //replaced (1.5 * (gyroDiff/180)) because function of 1.5 is unknown
             }
@@ -68,12 +73,14 @@ public class Drive {
                 r = (gyroDiff - 180) / 180; //replaced (1.5 * (gyroDiff/180)) because function of 1.5 is unknown
             }
         } else {
+            //If the bot is turning, then update the gyro again
             oldGyro = gyro.getAngleZ();
             r = rot;
         }
 
         rot = Range.clip(r, -1, 1);
 
+        //Absolutely no idea. XD
         double temp = xComp;
         xComp = xComp * Math.cos(gyro.getAngleZ()) - yComp * Math.sin(gyro.getAngleZ());
         yComp = temp * Math.sin(gyro.getAngleZ()) + yComp * Math.cos(gyro.getAngleZ());
@@ -126,6 +133,7 @@ public class Drive {
         motorRightBack.setPower(speedWheel[3]);
     }
 
+    //Returns the maximum of four variables
     public double max(double a, double b, double c, double d) {
 
         a = Math.abs(a);
