@@ -88,7 +88,7 @@ public class Gyro {
      */
     public void readZ() {
         int z = this.getZ();
-        double diff = (z + Math.abs(z) / OFFSET) * (timer.milliseconds() - oldTime);
+        double diff = (z + .1) * (timer.milliseconds() - oldTime);
         angleZ += diff;
         oldTime = timer.milliseconds();
     }
@@ -135,7 +135,7 @@ public class Gyro {
      *  Returns the angle across the z axis
      */
     public int getAngleZ(){
-        int returnAngle = (int)Math.round(angleZ / SCALE);
+        int returnAngle = (int)Math.round(angleZ / 440) + Drive.OFFSET;
         returnAngle %= 360;
         return returnAngle;
     }

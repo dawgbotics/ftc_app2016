@@ -5,11 +5,13 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.Hardware;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+
 public class Drive {
     //Initializes a factor for the speed of movement to a position
     public static final double BASE_SPEED = .5;
     //How much the robot is rotated when we start (as in, the wheels are in a diamond, not a square)
-    public static final int OFFSET = 45;
+    public static final int OFFSET = 225;
 
     double xComp;
     double yComp;
@@ -25,8 +27,9 @@ public class Drive {
     DcMotor motorRightBack;
 
     Gyro gyro;
+    Telemetry telemetry;
 
-    public Drive(HardwareMap hardwareMap, String gyroName) {
+    public Drive(HardwareMap hardwareMap, String gyroName, Telemetry telemetry) {
         //Initialize motors and gyro
         motorLeftBack = hardwareMap.dcMotor.get("back left");
         motorLeftFront = hardwareMap.dcMotor.get("front left");
@@ -38,11 +41,17 @@ public class Drive {
         motorRightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motorRightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        //gyro = new Gyro(hardwareMap, gyroName);
+        gyro = new Gyro(hardwareMap, gyroName);
+        this.telemetry = telemetry;
     }
 
     //Currently uncommented because it doesn't work BUT NEEDS COMMENTS SOMETIME IN THE FUTURE
     public boolean driveToPosition(int targetTicks, double speed) {
+        telemetry.addData("Left Back: ", motorLeftBack.getCurrentPosition());
+        telemetry.addData("Left Front: ", motorLeftFront.getCurrentPosition());
+        telemetry.addData("Right Back: ", motorRightBack.getCurrentPosition());
+        telemetry.addData("Right Front: ", motorRightFront.getCurrentPosition());
+
         int currentTicks = (int) max(motorLeftBack.getCurrentPosition(), motorLeftFront.getCurrentPosition(),
                motorRightBack.getCurrentPosition(), motorRightFront.getCurrentPosition());
         if (currentTicks <= targetTicks) {
@@ -55,11 +64,20 @@ public class Drive {
         return true;
     }
 
+    public void reset() {
+        gyro.reset();
+        oldGyro = OFFSET;
+    }
+
     public void useGyro() {
         gyro.readZ();
-        double r;
+        double r = 0;
+        telemetry.addData("Gyro Z: ", gyro.getAngleZ());
+        telemetry.addData("Rot: ", rot);
         if (rot == 0) {
             double gyroDiff = gyro.getAngleZ() - oldGyro;
+            telemetry.addData("oldGyro: ", oldGyro);
+            telemetry.addData("gyroDiff: ", gyroDiff);
             //If you're moving forwards and you drift, this should correct it.
             //Accounts for if you go from 1 degree to 360 degrees which is only a difference of one degree,
             //but the bot thinks that's 359 degree difference
@@ -70,7 +88,7 @@ public class Drive {
             if (gyroDiff > 180) {
                 r = (180 - gyroDiff) / 180; //replaced (1.5 * (gyroDiff/180)) because function of 1.5 is unknown
             } else {
-                r = (gyroDiff - 180) / 180; //replaced (1.5 * (gyroDiff/180)) because function of 1.5 is unknown
+                r = (gyroDiff) / 180; //replaced (1.5 * (gyroDiff/180)) because function of 1.5 is unknown
             }
         } else {
             //If the bot is turning, then update the gyro again
@@ -81,9 +99,9 @@ public class Drive {
         rot = Range.clip(r, -1, 1);
 
         //Absolutely no idea. XD
-        double temp = xComp;
-        xComp = xComp * Math.cos(gyro.getAngleZ()) - yComp * Math.sin(gyro.getAngleZ());
-        yComp = temp * Math.sin(gyro.getAngleZ()) + yComp * Math.cos(gyro.getAngleZ());
+        //double temp = xComp;
+        //xComp = xComp * Math.cos(gyro.getAngleZ()) - yComp * Math.sin(gyro.getAngleZ());
+        //yComp = temp * Math.sin(gyro.getAngleZ()) + yComp * Math.cos(gyro.getAngleZ());
     }
 
     public void drive(double speed) {
