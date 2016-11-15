@@ -39,7 +39,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.Range;
 
-@TeleOp(name = "Ur mom", group = "Iterative Opmode")
+@TeleOp(name = "TeleOp", group = "Iterative Opmode")
 public class TeleOpOmni extends OpMode {
     /* Declare OpMode members. */
     //private ElapsedTime runtime = new ElapsedTime();

@@ -35,7 +35,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-@TeleOp(name = "gyrotest3", group = "Iterative Opmode")
+@TeleOp(name = "gyrotest", group = "Iterative Opmode")
 
 public class TestGyroThree extends OpMode {
     Gyro ourGyro;
