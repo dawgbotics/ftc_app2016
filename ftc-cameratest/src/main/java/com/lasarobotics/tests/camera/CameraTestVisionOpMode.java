@@ -17,18 +17,26 @@ import org.lasarobotics.vision.util.color.Color;
 import org.lasarobotics.vision.util.color.ColorGRAY;
 import org.lasarobotics.vision.util.color.ColorRGBA;
 import org.opencv.android.Utils;
+import org.opencv.calib3d.Calib3d;
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
+import org.opencv.core.DMatch;
 import org.opencv.core.KeyPoint;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfKeyPoint;
+import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.features2d.DescriptorExtractor;
+import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
 import org.opencv.features2d.Features2d;
 
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 import static org.lasarobotics.vision.android.Util.getContext;
 import static org.opencv.imgcodecs.Imgcodecs.CV_LOAD_IMAGE_COLOR;
@@ -42,79 +50,16 @@ import static org.opencv.imgcodecs.Imgcodecs.imread;
 public class CameraTestVisionOpMode extends TestableVisionOpMode {
 
     Mat image;
+    FeatureDetector fd;
+    DescriptorExtractor dx;
+    DescriptorMatcher dm;
+    MatOfKeyPoint objectpoints;
+    MatOfKeyPoint objectdescriptors;
     @Override
     public void init() {
         super.init();
-
-        /**
-         * Set the camera used for detection
-         * PRIMARY = Front-facing, larger camera
-         * SECONDARY = Screen-facing, "selfie" camera :D
-         **/
-        //this.setCamera(Cameras.SECONDARY);
-
-        /**
-         * Set the maximum frame size
-         * Larger = sometimes more accurate, but also much slower
-         * After this method runs, it will set the "width" and "height" of the frame
-         **/
         this.setFrameSize(new Size(480, 320));
 
-        /**
-         * Enable extensions. Use what you need.
-         * If you turn on the BEACON extension, it's best to turn on ROTATION too.
-         */
-        //enableExtension(Extensions.BEACON);         //Beacon detection
-        //enableExtension(Extensions.ROTATION);       //Automatic screen rotation correction
-        //enableExtension(Extensions.CAMERA_CONTROL); //Manual camera control
-
-        /**
-         * Set the beacon analysis method
-         * Try them all and see what works!
-         */
-        //beacon.setAnalysisMethod(Beacon.AnalysisMethod.FAST);
-
-        /**
-         * Set color tolerances
-         * 0 is default, -1 is minimum and 1 is maximum tolerance
-         */
-        //beacon.setColorToleranceRed(0);
-        //beacon.setColorToleranceBlue(0);
-
-        /**
-         * Debug drawing
-         * Enable this only if you're running test app - otherwise, you should turn it off
-         * (Although it doesn't harm anything if you leave it on, only slows down image processing)
-         */
-        //beacon.enableDebug();
-
-
-        /**
-         * Set the rotation parameters of the screen
-         *
-         * First, tell the extension whether you are using a secondary camera
-         * (or in some devices, a front-facing camera that reverses some colors).
-         *
-         * If you have a weird phone, you can set the "zero" orientation here as well.
-         *
-         * For TestableVisionOpModes, changing other settings may break the app. See other examples
-         * for normal OpModes.
-         */
-        //rotation.setIsUsingSecondaryCamera(false);
-        //rotation.disableAutoRotate();
-        //rotation.setActivityOrientationFixed(ScreenOrientation.LANDSCAPE);
-        //rotation.setZeroOrientation(ScreenOrientation.LANDSCAPE_REVERSE);
-
-        /**
-         * Set camera control extension preferences
-         *
-         * Enabling manual settings will improve analysis rate and may lead to better results under
-         * tested conditions. If the environment changes, expect to change these values.
-         */
-        //cameraControl.setColorTemperature(CameraControlExtension.ColorTemperature.AUTO);
-        //cameraControl.setAutoExposureCompensation();
-
-        // Finding keypoints and descriptors
 
         this.image = new Mat(new Size(480, 320), CvType.CV_8UC1);
         try {
@@ -122,16 +67,15 @@ public class CameraTestVisionOpMode extends TestableVisionOpMode {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        MatOfKeyPoint objectpoints = new MatOfKeyPoint();
-        FeatureDetector fd = FeatureDetector.create(FeatureDetector.FAST);
-        fd.detect(this.image, objectpoints);
-        MatOfKeyPoint objectdescriptors = new MatOfKeyPoint();
-        DescriptorExtractor dx = DescriptorExtractor.create(DescriptorExtractor.ORB);
-        dx.compute(this.image, objectpoints, objectdescriptors);
-        Scalar newKeypointColor = new Scalar(255, 0, 0);
-        Mat outputImage = new Mat(this.image.rows(), this.image.cols(), CV_LOAD_IMAGE_COLOR);
-        Features2d.drawKeypoints(this.image,objectpoints, outputImage, newKeypointColor, 0);
-        this.image = outputImage; 
+        this.objectpoints =  new MatOfKeyPoint();
+        this.fd = FeatureDetector.create(FeatureDetector.BRISK);
+        this.fd.detect(this.image, objectpoints);
+        this.objectdescriptors = new MatOfKeyPoint();
+        this.dx = DescriptorExtractor.create(DescriptorExtractor.BRISK);
+        this.dx.compute(this.image, objectpoints, objectdescriptors);
+
+
+
     }
 
     @Override
@@ -146,8 +90,63 @@ public class CameraTestVisionOpMode extends TestableVisionOpMode {
 
     @Override
     public Mat frame(Mat rgba, Mat gray) {
+
         rgba = super.frame(rgba, gray);
         gray = Color.rapidConvertRGBAToGRAY(rgba);
+        MatOfKeyPoint sceneKeyPoints = new MatOfKeyPoint();
+        MatOfKeyPoint sceneDescriptors = new MatOfKeyPoint();
+        this.fd.detect(rgba, sceneKeyPoints);
+        this.dx.compute(rgba, sceneKeyPoints, sceneDescriptors);
+
+
+        List<MatOfDMatch> matches = new LinkedList<MatOfDMatch>();
+        this.dm = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMING);
+        if(this.objectdescriptors.cols() == sceneDescriptors.cols()) {
+        this.dm.knnMatch(this.objectdescriptors, sceneDescriptors, matches, 2);
+        LinkedList<DMatch> goodmatches = new LinkedList<DMatch>();
+        float nndrRatio = 0.7f;
+        if (matches.size() > 0) {
+            for (int i = 0; i < matches.size(); i++) {
+                MatOfDMatch matofDMatch = matches.get(i);
+                DMatch[] dmatcharray = matofDMatch.toArray();
+                DMatch m1 = dmatcharray[0];
+                DMatch m2 = dmatcharray[1];
+
+                if (m1.distance <= m2.distance * nndrRatio) {
+                    goodmatches.addLast(m1);
+                }
+
+            }
+        }
+        if (goodmatches.size() >= 7) {
+            List<KeyPoint> objKeypointlist = this.objectpoints.toList();
+            List<KeyPoint> scnKeypointlist = sceneKeyPoints.toList();
+            LinkedList<Point> objectPoints = new LinkedList<>();
+            LinkedList<Point> scenePoints = new LinkedList<>();
+            for (int i = 0; i < goodmatches.size(); i++) {
+                objectPoints.addLast(objKeypointlist.get(goodmatches.get(i).queryIdx).pt);
+                scenePoints.addLast(scnKeypointlist.get(goodmatches.get(i).trainIdx).pt);
+            }
+            ColorRGBA color = new ColorRGBA("#ff0000");
+            for (int j = 0; j < scenePoints.size(); j++) {
+
+                Drawing.drawCircle(rgba, scenePoints.get(j), 2, color);
+            }
+            //MatOfPoint2f objMatOfPoint2f = new MatOfPoint2f();
+            //objMatOfPoint2f.fromList(objectPoints);
+            //MatOfPoint2f scnMatOfPoint2f = new MatOfPoint2f();
+            //scnMatOfPoint2f.fromList(scenePoints);
+
+            //Mat homography = Calib3d.findHomography(objMatOfPoint2f, scnMatOfPoint2f, Calib3d.RANSAC, 3);
+
+
+            //transforming object corners to screen corners
+        }
+
+        } else {
+            //object not found
+            return rgba;
+        }
 
 
         //Get beacon analysi
