@@ -42,6 +42,7 @@ public class TestGyroThree extends OpMode {
 
     @Override
     public void init() {
+
         ourGyro = new Gyro(hardwareMap, "gyro");
     }
 
@@ -58,7 +59,6 @@ public class TestGyroThree extends OpMode {
 
     @Override
     public void start() {
-        ourGyro.reset();
         ourGyro.startPolling();
     }
 }

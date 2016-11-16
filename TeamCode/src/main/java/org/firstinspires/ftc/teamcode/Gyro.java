@@ -21,12 +21,12 @@ public class Gyro {
     //instance variables
     private double angleX = 0;
     private double angleY = 0;
-    private double angleZ = Drive.OFFSET;
+    private double angleZ = 0;
 
     private ElapsedTime timer;
     private double oldTime = 0;
-    final static double OFFSET = 18.;
-    final static double SCALE = 1 / 425;
+    final static double OFFSET = 8.;
+    final static double SCALE = 1;
 
     static final I2cAddr GYRO_ADDRESS = new I2cAddr(0x6B);
     private I2cDevice gyro;
@@ -88,7 +88,7 @@ public class Gyro {
      */
     public void readZ() {
         int z = this.getZ();
-        double diff = (z + Math.abs(z) / OFFSET) * (timer.milliseconds() - oldTime);
+        double diff = (z + .1) * (timer.milliseconds() - oldTime);
         angleZ += diff;
         oldTime = timer.milliseconds();
     }
@@ -135,7 +135,7 @@ public class Gyro {
      *  Returns the angle across the z axis
      */
     public int getAngleZ(){
-        int returnAngle = (int)Math.round(angleZ / SCALE);
+        int returnAngle = Drive.OFFSET + (int)Math.round(angleZ / 440);
         returnAngle %= 360;
         return returnAngle;
     }
