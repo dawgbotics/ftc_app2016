@@ -34,86 +34,58 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-
 /**
- * This file contains an example of an iterative (Non-Linear) "OpMode".
- * An OpMode is a 'program' that runs in either the autonomous or the teleop period of an FTC match.
- * The names of OpModes appear on the menu of the FTC Driver Station.
- * When an selection is made from the menu, the corresponding OpMode
+ * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
+ * the autonomous or the teleop period of an FTC match. The names of OpModes appear on the menu
+ * of the FTC Driver Station. When an selection is made from the menu, the corresponding OpMode
  * class is instantiated on the Robot Controller and executed.
  *
  * This particular OpMode just executes a basic Tank Drive Teleop for a PushBot
- * It includes all the skeletal structure that all iterative OpModes contain.
+ * It includes all the skeletal structure that all linear OpModes contain.
  *
  * Use Android Studios to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="gyrotest", group="Iterative Opmode")  // @Autonomous(...) is the other common choice
+@TeleOp(name="Template: Linear OpMode", group="Linear Opmode")  // @Autonomous(...) is the other common choice
+@Disabled
+public class Autonomous extends LinearOpMode {
 
-public class TestGyro extends LinearOpMode
-{
+    private ElapsedTime runtime = new ElapsedTime();
 
-    Wire gyro;
-    int i = 0;
-    ElapsedTime time = new ElapsedTime();
+    Drive drive;
 
     @Override
     public void runOpMode() {
-        gyro = new Wire(hardwareMap, "gyro", 2*0x6A);
-        gyro.write(0x39, 0x00);
-        gyro.write(0x23, 0x00);
-        gyro.write(0x20, 0x6F);
+
+        drive = new Drive(hardwareMap, "gyro", telemetry);
 
         waitForStart();
+        runtime.reset();
 
-        telemetry.update();
+        drive.xComp = 1;
+        drive.yComp = 1;
+        drive.rot = 0;
+        while (drive.driveToPosition(10000, 1) && opModeIsActive()) {}
+        drive.xComp = 0;
+        drive.yComp = 0;
+        drive.rot = 0;
 
-        // run until the end of the match (driver presses STOP)
-        while (opModeIsActive()) {
-            gyro.requestFrom(0x28 | (1 << 7), (byte) 6);
-            //took out timeout
-            int xlg = readVal(gyro, telemetry);
-            int xhg = readVal(gyro, telemetry);
-            int ylg = readVal(gyro, telemetry);
-            int yhg = readVal(gyro, telemetry);
-            int zlg = readVal(gyro, telemetry);
-            int zhg = readVal(gyro, telemetry);
-
-            int x = (int) (xhg << 8 | xlg);
-            int y = (int) (yhg << 8 | ylg);
-            int z = (int) (zhg << 8 | zlg);
-
-            gyro.requestFrom(0b0101001, (byte) 1);
-            int x2 = readVal(gyro, telemetry);
-            gyro.endWrite();
-
-            gyro.requestFrom(0b0101011, (byte) 1);
-            int y2 = readVal(gyro, telemetry);
-            gyro.endWrite();
-
-            i = i + 1;
-
-            telemetry.clearAll();
-            telemetry.addData("x", x);
-            telemetry.addData("y", y);
-            telemetry.addData("z", z);
-            telemetry.addData("x2", x2);
-            telemetry.addData("y2", y2);
-            telemetry.addData("lol", i);
-            telemetry.update();
-            idle();
+        if (/*is red*/) {
+            drive.xComp = 1;
+        } else {
+            drive.xComp = -1;
         }
-    }
 
-    public int readVal(Wire gyro, Telemetry telemetry) {
-        while (gyro.responseCount() < 1){}
-        return gyro.read();
-
+        while (drive.driveToPosition(2000, 1) && opModeIsActive()) {}
+        drive.xComp = 0;
+        drive.yComp = 1;
+        while (drive.driveToPosition(5000, 1) && opModeIsActive()) {}
+        drive.yComp = -1;
+        while (drive.driveToPosition(8000, 1) && opModeIsActive()) {}
     }
 }

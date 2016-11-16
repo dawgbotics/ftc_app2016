@@ -135,7 +135,7 @@ public class Gyro {
      *  Returns the angle across the z axis
      */
     public int getAngleZ(){
-        int returnAngle = Drive.OFFSET + (int)Math.round(angleZ / 440);
+        int returnAngle = (int)Math.round(angleZ / 440) + Drive.OFFSET;
         returnAngle %= 360;
         return returnAngle;
     }

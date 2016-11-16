@@ -35,13 +35,23 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.util.Range;
 
-@TeleOp(name = "Ur mom", group = "Iterative Opmode")
+@TeleOp(name = "TeleOp", group = "Iterative Opmode")
 public class TeleOpOmni extends OpMode {
     /* Declare OpMode members. */
     //private ElapsedTime runtime = new ElapsedTime();
 
     Drive drive;
+
+    DcMotor motorGun1;
+    DcMotor motorGun2;
+
+    DcMotor ballIntake;
+
+    double intake = 0;
 
     @Override
     public void loop() {
@@ -49,6 +59,12 @@ public class TeleOpOmni extends OpMode {
         drive.xComp = gamepad1.left_stick_x;
         drive.yComp = -1 * gamepad1.left_stick_y;
         drive.rot = gamepad1.right_stick_x;
+
+        if (gamepad1.a) {
+            drive.reset();
+        }
+
+        drive.useGyro();
 
         //This \/ is the controller dead zone
         if (drive.rot < .05 && drive.rot > -.05) {
@@ -60,7 +76,6 @@ public class TeleOpOmni extends OpMode {
         if (drive.yComp < .05 && drive.yComp > -.05) {
             drive.yComp = 0;
         }
-
         //This \/ sets a maximum speed (of 1) if you're rotating and driving simultaneously
         double speed = Math.sqrt(drive.xComp * drive.xComp + drive.yComp * drive.yComp) + Math.abs(drive.rot);
         if (speed > 1) {
@@ -75,12 +90,41 @@ public class TeleOpOmni extends OpMode {
             speed = speed / 4;
         }
 
+        //Gun
+        double power =  -gamepad2.left_stick_y / 2;
+        power = Range.clip(power, 0, 1);
+
+        //Since the gears are interlocking, one motor needs to run backwards
+        motorGun1.setPower(power);
+        motorGun2.setPower(power);
+
         drive.drive(speed);
+
+        if (gamepad2.x) {
+            intake = -1;
+        } if (gamepad2.y) {
+            intake = 0;
+        } if (gamepad2.b) {
+            intake = 1;
+        }
+
+        ballIntake.setPower(intake);
     }
 
     @Override
     public void init() {
-        drive = new Drive(hardwareMap, "gyro");
+        drive = new Drive(hardwareMap, "gyro", telemetry);
+
+        motorGun1 = hardwareMap.dcMotor.get("gun 1");
+        motorGun2 = hardwareMap.dcMotor.get("gun 2");
+
+        ballIntake = hardwareMap.dcMotor.get("intake");
+        ballIntake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        motorGun1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorGun2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorGun1.setDirection(DcMotorSimple.Direction.REVERSE);
+        motorGun2.setDirection(DcMotorSimple.Direction.FORWARD);
     }
 
 }
