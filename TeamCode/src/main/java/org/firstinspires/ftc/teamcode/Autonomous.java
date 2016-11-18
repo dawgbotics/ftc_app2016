@@ -75,7 +75,7 @@ public class Autonomous extends LinearOpMode {
         drive.yComp = 0;
         drive.rot = 0;
 
-        if (/*is red*/) {
+        if (true/*is red*/) {
             drive.xComp = 1;
         } else {
             drive.xComp = -1;

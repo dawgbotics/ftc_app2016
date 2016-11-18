@@ -25,7 +25,7 @@ public class Gyro {
 
     private ElapsedTime timer;
     private double oldTime = 0;
-    final static double OFFSET = 8.;
+    final static double OFFSET = .08;
     final static double SCALE = 1;
 
     static final I2cAddr GYRO_ADDRESS = new I2cAddr(0x6B);
@@ -88,7 +88,7 @@ public class Gyro {
      */
     public void readZ() {
         int z = this.getZ();
-        double diff = (z + .1) * (timer.milliseconds() - oldTime);
+        double diff = (z + OFFSET) * (timer.milliseconds() - oldTime);
         angleZ += diff;
         oldTime = timer.milliseconds();
     }

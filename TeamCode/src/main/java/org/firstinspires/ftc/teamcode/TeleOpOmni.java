@@ -86,10 +86,10 @@ public class TeleOpOmni extends OpMode {
             speed = 1;
         }
 
-        float right1 = gamepad1.right_trigger;
-        float left1 = gamepad1.left_trigger;
-        float right2 = gamepad2.right_trigger;
-        float left2 = gamepad2.left_trigger;
+        float right1 = gamepad1.right_trigger / 4;
+        float left1 = gamepad1.left_trigger / 4;
+        float right2 = gamepad2.right_trigger / 4;
+        float left2 = gamepad2.left_trigger / 4;
 
         //Dead zone
         if (right1 < .05) { right1 = 0; }
@@ -99,6 +99,7 @@ public class TeleOpOmni extends OpMode {
 
         //If you push the right trigger, the intake runs forwards (defaults to gamepad1) (defaults to forwards)
         if (right1 > 0) {
+
             motorIntake.setPower(right1);
         } else if (right2 > 0) {
             motorIntake.setPower(right2);
@@ -106,7 +107,7 @@ public class TeleOpOmni extends OpMode {
         //If you push the left trigger on either, the intake runs backwards (defaults to gamepad1)
         else if (left1 > 0) {
             motorIntake.setPower(-left1);
-        } else if (left2 > 0) {
+        } else {
             motorIntake.setPower(-left2);
         }
 
