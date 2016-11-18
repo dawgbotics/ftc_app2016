@@ -132,14 +132,24 @@ public class CameraTestVisionOpMode extends TestableVisionOpMode {
 
                 Drawing.drawCircle(rgba, scenePoints.get(j), 2, color);
             }
-            //MatOfPoint2f objMatOfPoint2f = new MatOfPoint2f();
-            //objMatOfPoint2f.fromList(objectPoints);
-            //MatOfPoint2f scnMatOfPoint2f = new MatOfPoint2f();
-            //scnMatOfPoint2f.fromList(scenePoints);
+            MatOfPoint2f objMatOfPoint2f = new MatOfPoint2f();
+            objMatOfPoint2f.fromList(objectPoints);
+            MatOfPoint2f scnMatOfPoint2f = new MatOfPoint2f();
+            scnMatOfPoint2f.fromList(scenePoints);
 
-            //Mat homography = Calib3d.findHomography(objMatOfPoint2f, scnMatOfPoint2f, Calib3d.RANSAC, 3);
+            Mat homography = Calib3d.findHomography(objMatOfPoint2f, scnMatOfPoint2f, Calib3d.RANSAC, 3);
+            Mat obj_corners = new Mat(4, 1, CvType.CV_32FC2);
+            Mat scene_corners = new Mat(4, 1, CvType.CV_32FC2);
 
-
+            obj_corners.put(0, 0, new double[]{0, 0});
+            obj_corners.put(1, 0, new double[]{this.image.cols(), 0});
+            obj_corners.put(2, 0, new double[]{this.image.cols(), this.image.rows()});
+            obj_corners.put(3, 0, new double[]{0, this.image.rows()});
+            Core.perspectiveTransform(obj_corners, scene_corners, homography);
+            Drawing.drawLine(rgba, new Point(scene_corners.get(1, 0)), new Point(scene_corners.get(2, 0)), new ColorRGBA("#FFC107"),4);
+            Drawing.drawLine(rgba, new Point(scene_corners.get(2, 0)), new Point(scene_corners.get(3, 0)), new ColorRGBA("#FFC107"),4);
+            Drawing.drawLine(rgba, new Point(scene_corners.get(3, 0)), new Point(scene_corners.get(0, 0)), new ColorRGBA("#FFC107"),4);
+            Drawing.drawLine(rgba, new Point(scene_corners.get(0, 0)), new Point(scene_corners.get(1, 0)), new ColorRGBA("#FFC107"),4);
             //transforming object corners to screen corners
         }
 
