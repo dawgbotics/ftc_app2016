@@ -9,7 +9,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class Drive {
     //Initializes a factor for the speed of movement to a position
-    public static final double BASE_SPEED = .5;
+    public static final double BASE_SPEED = .3;
     //How much the robot is rotated when we start (as in, the wheels are in a diamond, not a square)
     public static final int OFFSET = 225;
 
@@ -45,14 +45,20 @@ public class Drive {
         this.telemetry = telemetry;
     }
 
+    public void runWithEncoders(){
+        motorLeftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorLeftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorRightBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorRightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
     //Currently uncommented because it doesn't work BUT NEEDS COMMENTS SOMETIME IN THE FUTURE
-    public boolean driveToPosition(int targetTicks, double speed) {
+    public boolean driveToPosition(double targetTicks, double speed) {
         telemetry.addData("Left Back: ", motorLeftBack.getCurrentPosition());
         telemetry.addData("Left Front: ", motorLeftFront.getCurrentPosition());
         telemetry.addData("Right Back: ", motorRightBack.getCurrentPosition());
         telemetry.addData("Right Front: ", motorRightFront.getCurrentPosition());
 
-        int currentTicks = (int) max(motorLeftBack.getCurrentPosition(), motorLeftFront.getCurrentPosition(),
+        double currentTicks = max(motorLeftBack.getCurrentPosition(), motorLeftFront.getCurrentPosition(),
                motorRightBack.getCurrentPosition(), motorRightFront.getCurrentPosition());
         if (currentTicks <= targetTicks) {
             if (currentTicks / targetTicks > .8) {
@@ -61,11 +67,12 @@ public class Drive {
                 speed *= BASE_SPEED + (currentTicks / (targetTicks / 5)) * (1 - BASE_SPEED);
             }
         } else {
-            drive(0);
+            drive(0, true);
+            this.resetEncoders();
             return false;
         }
         speed = Range.clip(speed, 0, 1);
-        drive(speed);
+        drive(speed, true);
         return true;
     }
 
@@ -109,13 +116,17 @@ public class Drive {
         //yComp = temp * Math.sin(gyro.getAngleZ()) + yComp * Math.cos(gyro.getAngleZ());
     }
 
-    public void drive(double speed) {
+    public void drive(double speed, boolean useEncoders) {
         //Keep speed <= 1 for proper scaling
 
-        motorLeftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        motorLeftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        motorRightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        motorRightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        if (!useEncoders) {
+            motorLeftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            motorLeftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            motorRightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+            motorRightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        } else {
+            this.runWithEncoders();
+        }
 
         double[] speedWheel = new double[4];
 

@@ -137,7 +137,7 @@ public class TeleOpOmni extends OpMode {
         }
         speed = speed/speedFactor;
 
-        drive.drive(speed);
+        drive.drive(speed, false);
     }
 
     @Override

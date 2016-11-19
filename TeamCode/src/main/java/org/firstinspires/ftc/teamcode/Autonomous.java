@@ -32,10 +32,13 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package org.firstinspires.ftc.teamcode;
 
+import android.os.IBinder;
+
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.lasarobotics.vision.android.Cameras;
@@ -58,18 +61,28 @@ import org.opencv.core.Size;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Template: Linear OpMode", group="Linear Opmode")  // @Autonomous(...) is the other common choice
+@com.qualcomm.robotcore.eventloop.opmode.Autonomous(name="auto", group="autonomous")  // @Autonomous(...) is the other common choice
 public class Autonomous extends LinearVisionOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
 
     Drive drive;
+    DcMotor motorGun1;
+    DcMotor motorGun2;
 
     @Override
     public void runOpMode() throws InterruptedException {
         waitForVisionStart();
         //all of this stuff comes from and is explained in LinearVisionSample
-        //drive = new Drive(hardwareMap, "gyro", telemetry);
+        drive = new Drive(hardwareMap, "gyro", telemetry);
+        drive.resetEncoders();
+        drive.runWithEncoders();
+        motorGun1 = hardwareMap.dcMotor.get("gun 1");
+        motorGun2 = hardwareMap.dcMotor.get("gun 2");
+        motorGun1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorGun2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorGun1.setDirection(DcMotorSimple.Direction.REVERSE);
+        motorGun2.setDirection(DcMotorSimple.Direction.FORWARD);
         this.setCamera(Cameras.PRIMARY);
         this.setFrameSize(new Size(900, 900));
         enableExtension(Extensions.BEACON);
@@ -80,13 +93,13 @@ public class Autonomous extends LinearVisionOpMode {
         beacon.setColorToleranceBlue(0);
         rotation.setIsUsingSecondaryCamera(false);
         rotation.disableAutoRotate();
-        rotation.setActivityOrientationFixed(ScreenOrientation.PORTRAIT);
+        rotation.setActivityOrientationFixed(ScreenOrientation.LANDSCAPE);
         cameraControl.setColorTemperature(CameraControlExtension.ColorTemperature.AUTO);
         cameraControl.setAutoExposureCompensation();
         waitForStart();
         //commence main loop
 
-        runtime.reset();
+        /*runtime.reset();
         int sf = 0;
         while(opModeIsActive()) {
             sf++;
@@ -94,26 +107,57 @@ public class Autonomous extends LinearVisionOpMode {
             telemetry.addData("Beacon Color", beacon.getAnalysis().getColorString());
             telemetry.addData("mem", ""+sf);
 
+        }*/
+
+
+        drive.xComp = 1;
+        drive.yComp = -1;
+        drive.rot = 0;
+        while (drive.driveToPosition(8000, .5) && opModeIsActive()) {}
+        drive.yComp = 0;
+        drive.rot = 0;
+        while (drive.driveToPosition(1000, .4) && opModeIsActive()) {}
+        drive.xComp = 0;
+
+        boolean done = false;
+        String s;
+        while (!done && opModeIsActive()) {
+            s = beacon.getAnalysis().getColorString();
+            telemetry.addData("Color", s);
+            if (s.equals("red, blue")) {
+                drive.yComp = 1;
+                done = true;
+            } else if (s.equals("blue, red")) {
+                drive.yComp = -1;
+                done = true;
+            }
         }
-            //drive.xComp = 1;
-        //drive.yComp = 1;
-        //drive.rot = 0;
-        //while (drive.driveToPosition(10000, 1) && opModeIsActive()) {}
-        //drive.xComp = 0;
-        //drive.yComp = 0;
-        //drive.rot = 0;
 
-        //if (beacon.getAnalysis().getButtonString().equals("")) {
-         //   drive.xComp = 1;
-        //} else {
-        //    drive.xComp = -1;
-        //}
+        while (drive.driveToPosition(150, .3) && opModeIsActive()) {}
+        drive.xComp = 1;
+        drive.yComp = 0;
+        while (drive.driveToPosition(1650, .4) && opModeIsActive()) {}
+        drive.xComp = -1;
+        while (drive.driveToPosition(1700, .5) && opModeIsActive()) {}
+        drive.xComp = 0;
+        drive.rot = 1;
+        drive.yComp = 0;
+        while (drive.driveToPosition(3700, .2) && opModeIsActive()) {}
 
-       // while (drive.driveToPosition(2000, 1) && opModeIsActive()) {}
-        //drive.xComp = 0;
-        //drive.yComp = 1;
-        //while (drive.driveToPosition(5000, 1) && opModeIsActive()) {}
-        //drive.yComp = -1;
-        //while (drive.driveToPosition(8000, 1) && opModeIsActive()) {}
+        motorGun1.setPower(.35);
+        motorGun2.setPower(.35);
+        sleep(4000);
+        motorGun2.setPower(0);
+        motorGun1.setPower(0);
+
+        drive.rot = 0;
+        drive.xComp = 1;
+        while (drive.driveToPosition(4000, 1) && opModeIsActive()) {}
+        drive.xComp = 0;
+
+        drive.rot = 1;
+        while (drive.driveToPosition(5000, 1) && opModeIsActive()) {}
+        drive.rot =0;
+
     }
 }
