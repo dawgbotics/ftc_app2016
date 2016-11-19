@@ -55,11 +55,16 @@ public class Drive {
         int currentTicks = (int) max(motorLeftBack.getCurrentPosition(), motorLeftFront.getCurrentPosition(),
                motorRightBack.getCurrentPosition(), motorRightFront.getCurrentPosition());
         if (currentTicks <= targetTicks) {
-            speed *= BASE_SPEED + ((targetTicks - currentTicks) / targetTicks) * (1 - BASE_SPEED);
+            if (currentTicks / targetTicks > .8) {
+                speed *= BASE_SPEED + ((targetTicks - currentTicks) / (targetTicks / 5)) * (1 - BASE_SPEED);
+            } else if (currentTicks / targetTicks < .2) {
+                speed *= BASE_SPEED + (currentTicks / (targetTicks / 5)) * (1 - BASE_SPEED);
+            }
         } else {
             drive(0);
             return false;
         }
+        speed = Range.clip(speed, 0, 1);
         drive(speed);
         return true;
     }
