@@ -38,6 +38,13 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.lasarobotics.vision.android.Cameras;
+import org.lasarobotics.vision.ftc.resq.Beacon;
+import org.lasarobotics.vision.opmode.LinearVisionOpMode;
+import org.lasarobotics.vision.opmode.extensions.CameraControlExtension;
+import org.lasarobotics.vision.util.ScreenOrientation;
+import org.opencv.core.Size;
+
 /**
  * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
  * the autonomous or the teleop period of an FTC match. The names of OpModes appear on the menu
@@ -52,40 +59,61 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  */
 
 @TeleOp(name="Template: Linear OpMode", group="Linear Opmode")  // @Autonomous(...) is the other common choice
-@Disabled
-public class Autonomous extends LinearOpMode {
+public class Autonomous extends LinearVisionOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
 
     Drive drive;
 
     @Override
-    public void runOpMode() {
-
-        drive = new Drive(hardwareMap, "gyro", telemetry);
-
+    public void runOpMode() throws InterruptedException {
+        waitForVisionStart();
+        //all of this stuff comes from and is explained in LinearVisionSample
+        //drive = new Drive(hardwareMap, "gyro", telemetry);
+        this.setCamera(Cameras.PRIMARY);
+        this.setFrameSize(new Size(900, 900));
+        enableExtension(Extensions.BEACON);
+        enableExtension(Extensions.ROTATION);
+        enableExtension(Extensions.CAMERA_CONTROL);
+        beacon.setAnalysisMethod(Beacon.AnalysisMethod.FAST);
+        beacon.setColorToleranceRed(0);
+        beacon.setColorToleranceBlue(0);
+        rotation.setIsUsingSecondaryCamera(false);
+        rotation.disableAutoRotate();
+        rotation.setActivityOrientationFixed(ScreenOrientation.PORTRAIT);
+        cameraControl.setColorTemperature(CameraControlExtension.ColorTemperature.AUTO);
+        cameraControl.setAutoExposureCompensation();
         waitForStart();
+        //commence main loop
+
         runtime.reset();
+        int sf = 0;
+        while(opModeIsActive()) {
+            sf++;
+            telemetry.clear();
+            telemetry.addData("Beacon Color", beacon.getAnalysis().getColorString());
+            telemetry.addData("mem", ""+sf);
 
-        drive.xComp = 1;
-        drive.yComp = 1;
-        drive.rot = 0;
-        while (drive.driveToPosition(10000, 1) && opModeIsActive()) {}
-        drive.xComp = 0;
-        drive.yComp = 0;
-        drive.rot = 0;
-
-        if (true/*is red*/) {
-            drive.xComp = 1;
-        } else {
-            drive.xComp = -1;
         }
+            //drive.xComp = 1;
+        //drive.yComp = 1;
+        //drive.rot = 0;
+        //while (drive.driveToPosition(10000, 1) && opModeIsActive()) {}
+        //drive.xComp = 0;
+        //drive.yComp = 0;
+        //drive.rot = 0;
 
-        while (drive.driveToPosition(2000, 1) && opModeIsActive()) {}
-        drive.xComp = 0;
-        drive.yComp = 1;
-        while (drive.driveToPosition(5000, 1) && opModeIsActive()) {}
-        drive.yComp = -1;
-        while (drive.driveToPosition(8000, 1) && opModeIsActive()) {}
+        //if (beacon.getAnalysis().getButtonString().equals("")) {
+         //   drive.xComp = 1;
+        //} else {
+        //    drive.xComp = -1;
+        //}
+
+       // while (drive.driveToPosition(2000, 1) && opModeIsActive()) {}
+        //drive.xComp = 0;
+        //drive.yComp = 1;
+        //while (drive.driveToPosition(5000, 1) && opModeIsActive()) {}
+        //drive.yComp = -1;
+        //while (drive.driveToPosition(8000, 1) && opModeIsActive()) {}
     }
 }
