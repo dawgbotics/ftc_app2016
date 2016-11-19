@@ -51,7 +51,7 @@ public class TeleOpOmni extends OpMode {
 
     DcMotor motorIntake;
 
-    private final static float SLOWEST_SPEED_FACTOR = 8;
+    private final static float SLOWEST_SPEED_FACTOR = 6;
     private final static float MIDDLE_SPEED_FACTOR = 4;
     private final static float FASTEST_SPEED_FACTOR = 1;
 
@@ -66,6 +66,10 @@ public class TeleOpOmni extends OpMode {
 
         if (gamepad1.a) {
             drive.reset();
+        }
+
+        if (drive.rot < .05 && drive.rot > -.05) {
+            drive.rot = 0;
         }
 
         drive.useGyro();
@@ -86,10 +90,10 @@ public class TeleOpOmni extends OpMode {
             speed = 1;
         }
 
-        float right1 = gamepad1.right_trigger / 4;
-        float left1 = gamepad1.left_trigger / 4;
-        float right2 = gamepad2.right_trigger / 4;
-        float left2 = gamepad2.left_trigger / 4;
+        double right1 = gamepad1.right_trigger / 1.8;
+        double left1 = gamepad1.left_trigger / 1.8;
+        double right2 = gamepad2.right_trigger / 1.8;
+        double left2 = gamepad2.left_trigger / 1.8;
 
         //Dead zone
         if (right1 < .05) { right1 = 0; }
@@ -107,13 +111,15 @@ public class TeleOpOmni extends OpMode {
         //If you push the left trigger on either, the intake runs backwards (defaults to gamepad1)
         else if (left1 > 0) {
             motorIntake.setPower(-left1);
-        } else {
+        } else if (left2 > 0){
             motorIntake.setPower(-left2);
+        } else {
+            motorIntake.setPower(0);
         }
 
         //Gun
         double power =  -gamepad2.left_stick_y / 2;
-        power = Range.clip(power, 0, 1);
+        power = Range.clip(power, 0, .5);
 
         //Since the gears are interlocking, one motor needs to run backwards
         motorGun1.setPower(power);
@@ -122,11 +128,11 @@ public class TeleOpOmni extends OpMode {
         //If you push X, you get the slowest speed
         //If you push Y, you get the middle speed
         //If you push B, you get the fastest speed
-        if (gamepad2.x) {
+        if (gamepad1.x) {
             speedFactor = SLOWEST_SPEED_FACTOR;
-        } if (gamepad2.y) {
+        } if (gamepad1.y) {
             speedFactor = MIDDLE_SPEED_FACTOR;
-        } if (gamepad2.b) {
+        } if (gamepad1.b) {
             speedFactor = FASTEST_SPEED_FACTOR;
         }
         speed = speed/speedFactor;
