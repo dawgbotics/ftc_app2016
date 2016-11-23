@@ -9,7 +9,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class Drive {
     //Initializes a factor for the speed of movement to a position
-    public static final double BASE_SPEED = .3;
+    public static final double BASE_SPEED = .4;
     //How much the robot is rotated when we start (as in, the wheels are in a diamond, not a square)
     public static final int OFFSET = 225;
 
@@ -51,6 +51,13 @@ public class Drive {
         motorRightBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motorRightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
+
+    public void runWithoutEncoders(){
+        motorLeftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorLeftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorRightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorRightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
     //Currently uncommented because it doesn't work BUT NEEDS COMMENTS SOMETIME IN THE FUTURE
     public boolean driveToPosition(double targetTicks, double speed) {
         telemetry.addData("Left Back: ", motorLeftBack.getCurrentPosition());
@@ -69,10 +76,11 @@ public class Drive {
         } else {
             drive(0, true);
             this.resetEncoders();
+            this.runWithoutEncoders();
             return false;
         }
         speed = Range.clip(speed, 0, 1);
-        drive(speed, true);
+        drive(speed, false);
         return true;
     }
 

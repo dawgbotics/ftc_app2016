@@ -56,7 +56,7 @@ import org.opencv.core.Size;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@com.qualcomm.robotcore.eventloop.opmode.Autonomous(name="AutonomousBlue", group="autonomous")  // @Autonomous(...) is the other common choice
+@com.qualcomm.robotcore.eventloop.opmode.Autonomous(name="AutonomusBlue", group="autonomous")  // @Autonomous(...) is the other common choice
 public class AutonomousBlue extends LinearVisionOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
@@ -105,13 +105,13 @@ public class AutonomousBlue extends LinearVisionOpMode {
         }*/
 
 
-        drive.xComp = -1;
-        drive.yComp = -1;
+        drive.xComp = 1;
+        drive.yComp = 1;
         drive.rot = 0;
-        while (drive.driveToPosition(8000, .5) && opModeIsActive()) {}
+        while (drive.driveToPosition(9000, .7) && opModeIsActive()) {}
         drive.yComp = 0;
         drive.rot = 0;
-        while (drive.driveToPosition(1000, .4) && opModeIsActive()) {}
+        while (drive.driveToPosition(800, .4) && opModeIsActive()) {}
         drive.xComp = 0;
 
         boolean done = false;
@@ -120,22 +120,22 @@ public class AutonomousBlue extends LinearVisionOpMode {
             s = beacon.getAnalysis().getColorString();
             telemetry.addData("Color", s);
             if (s.equals("blue, red")) {
-                drive.yComp = 1;
+                drive.yComp = -1;
                 done = true;
             } else if (s.equals("red, blue")) {
-                drive.yComp = -1;
+                drive.yComp = 1;
                 done = true;
             }
         }
 
         while (drive.driveToPosition(150, .3) && opModeIsActive()) {}
-        drive.xComp = -1;
-        drive.yComp = 0;
-        while (drive.driveToPosition(1650, .4) && opModeIsActive()) {}
         drive.xComp = 1;
+        drive.yComp = 0;
+        while (drive.driveToPosition(1800, .4) && opModeIsActive()) {}
+        drive.xComp = -1;
         while (drive.driveToPosition(1700, .5) && opModeIsActive()) {}
         drive.xComp = 0;
-        drive.rot = 1;
+        drive.rot = -1;
         drive.yComp = 0;
         while (drive.driveToPosition(3700, .2) && opModeIsActive()) {}
 
@@ -146,7 +146,7 @@ public class AutonomousBlue extends LinearVisionOpMode {
         motorGun1.setPower(0);
 
         drive.rot = 0;
-        drive.xComp = -1;
+        drive.xComp = 1;
         while (drive.driveToPosition(4000, 1) && opModeIsActive()) {}
         drive.xComp = 0;
 

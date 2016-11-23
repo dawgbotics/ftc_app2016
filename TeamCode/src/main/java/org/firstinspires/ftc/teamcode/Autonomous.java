@@ -32,11 +32,6 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package org.firstinspires.ftc.teamcode;
 
-import android.os.IBinder;
-
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -76,7 +71,7 @@ public class Autonomous extends LinearVisionOpMode {
         //all of this stuff comes from and is explained in LinearVisionSample
         drive = new Drive(hardwareMap, "gyro", telemetry);
         drive.resetEncoders();
-        drive.runWithEncoders();
+        //drive.runWithEncoders();
         motorGun1 = hardwareMap.dcMotor.get("gun 1");
         motorGun2 = hardwareMap.dcMotor.get("gun 2");
         motorGun1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -109,14 +104,16 @@ public class Autonomous extends LinearVisionOpMode {
 
         }*/
 
-
+        sleep(200);
         drive.xComp = 1;
         drive.yComp = -1;
         drive.rot = 0;
         while (drive.driveToPosition(8000, .5) && opModeIsActive()) {}
+        sleep(200);
         drive.yComp = 0;
         drive.rot = 0;
         while (drive.driveToPosition(1000, .4) && opModeIsActive()) {}
+        sleep(200);
         drive.xComp = 0;
 
         boolean done = false;
@@ -134,15 +131,19 @@ public class Autonomous extends LinearVisionOpMode {
         }
 
         while (drive.driveToPosition(150, .3) && opModeIsActive()) {}
+        sleep(200);
         drive.xComp = 1;
         drive.yComp = 0;
-        while (drive.driveToPosition(1650, .4) && opModeIsActive()) {}
+        while (drive.driveToPosition(2000, .4) && opModeIsActive()) {}
+        sleep(200);
         drive.xComp = -1;
         while (drive.driveToPosition(1700, .5) && opModeIsActive()) {}
+        sleep(200);
         drive.xComp = 0;
         drive.rot = 1;
         drive.yComp = 0;
         while (drive.driveToPosition(3700, .2) && opModeIsActive()) {}
+        sleep(200);
 
         motorGun1.setPower(.35);
         motorGun2.setPower(.35);
@@ -153,10 +154,12 @@ public class Autonomous extends LinearVisionOpMode {
         drive.rot = 0;
         drive.xComp = 1;
         while (drive.driveToPosition(4000, 1) && opModeIsActive()) {}
+        sleep(200);
         drive.xComp = 0;
 
         drive.rot = 1;
         while (drive.driveToPosition(5000, 1) && opModeIsActive()) {}
+        sleep(200);
         drive.rot =0;
 
     }
