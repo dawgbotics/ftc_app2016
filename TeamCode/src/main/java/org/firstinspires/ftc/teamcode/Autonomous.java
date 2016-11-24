@@ -32,11 +32,16 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.lasarobotics.vision.android.Cameras;
+import org.lasarobotics.vision.ftc.resq.Beacon;
+import org.lasarobotics.vision.opmode.LinearVisionOpMode;
+import org.lasarobotics.vision.opmode.extensions.CameraControlExtension;
+import org.lasarobotics.vision.util.ScreenOrientation;
+import org.opencv.core.Size;
 
 /**
  * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
@@ -51,41 +56,111 @@ import com.qualcomm.robotcore.util.ElapsedTime;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@TeleOp(name="Template: Linear OpMode", group="Linear Opmode")  // @Autonomous(...) is the other common choice
-@Disabled
-public class Autonomous extends LinearOpMode {
+@com.qualcomm.robotcore.eventloop.opmode.Autonomous(name="AutonomusRed", group="autonomous")  // @Autonomous(...) is the other common choice
+public class Autonomous extends LinearVisionOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
 
     Drive drive;
+    DcMotor motorGun1;
+    DcMotor motorGun2;
 
     @Override
-    public void runOpMode() {
-
+    public void runOpMode() throws InterruptedException {
+        waitForVisionStart();
+        //all of this stuff comes from and is explained in LinearVisionSample
         drive = new Drive(hardwareMap, "gyro", telemetry);
-
+        drive.resetEncoders();
+        //drive.runWithEncoders();
+        motorGun1 = hardwareMap.dcMotor.get("gun 1");
+        motorGun2 = hardwareMap.dcMotor.get("gun 2");
+        motorGun1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorGun2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorGun1.setDirection(DcMotorSimple.Direction.REVERSE);
+        motorGun2.setDirection(DcMotorSimple.Direction.FORWARD);
+        this.setCamera(Cameras.PRIMARY);
+        this.setFrameSize(new Size(900, 900));
+        enableExtension(Extensions.BEACON);
+        enableExtension(Extensions.ROTATION);
+        enableExtension(Extensions.CAMERA_CONTROL);
+        beacon.setAnalysisMethod(Beacon.AnalysisMethod.FAST);
+        beacon.setColorToleranceRed(0);
+        beacon.setColorToleranceBlue(0);
+        rotation.setIsUsingSecondaryCamera(false);
+        rotation.disableAutoRotate();
+        rotation.setActivityOrientationFixed(ScreenOrientation.LANDSCAPE);
+        cameraControl.setColorTemperature(CameraControlExtension.ColorTemperature.AUTO);
+        cameraControl.setAutoExposureCompensation();
         waitForStart();
-        runtime.reset();
+        //commence main loop
 
+        /*runtime.reset();
+        int sf = 0;
+        while(opModeIsActive()) {
+            sf++;
+            telemetry.clear();
+            telemetry.addData("Beacon Color", beacon.getAnalysis().getColorString());
+            telemetry.addData("mem", ""+sf);
+
+        }*/
+
+        sleep(200);
         drive.xComp = 1;
-        drive.yComp = 1;
+        drive.yComp = -1;
         drive.rot = 0;
-        while (drive.driveToPosition(10000, 1) && opModeIsActive()) {}
-        drive.xComp = 0;
+        while (drive.driveToPosition(8000, .5) && opModeIsActive()) {}
+        sleep(200);
         drive.yComp = 0;
         drive.rot = 0;
+        while (drive.driveToPosition(1000, .4) && opModeIsActive()) {}
+        sleep(200);
+        drive.xComp = 0;
 
-        if (/*is red*/) {
-            drive.xComp = 1;
-        } else {
-            drive.xComp = -1;
+        boolean done = false;
+        String s;
+        while (!done && opModeIsActive()) {
+            s = beacon.getAnalysis().getColorString();
+            telemetry.addData("Color", s);
+            if (s.equals("red, blue")) {
+                drive.yComp = 1;
+                done = true;
+            } else if (s.equals("blue, red")) {
+                drive.yComp = -1;
+                done = true;
+            }
         }
 
-        while (drive.driveToPosition(2000, 1) && opModeIsActive()) {}
+        while (drive.driveToPosition(150, .3) && opModeIsActive()) {}
+        sleep(200);
+        drive.xComp = 1;
+        drive.yComp = 0;
+        while (drive.driveToPosition(2000, .4) && opModeIsActive()) {}
+        sleep(200);
+        drive.xComp = -1;
+        while (drive.driveToPosition(1700, .5) && opModeIsActive()) {}
+        sleep(200);
         drive.xComp = 0;
-        drive.yComp = 1;
+        drive.rot = 1;
+        drive.yComp = 0;
+        while (drive.driveToPosition(3700, .2) && opModeIsActive()) {}
+        sleep(200);
+
+        motorGun1.setPower(.35);
+        motorGun2.setPower(.35);
+        sleep(4000);
+        motorGun2.setPower(0);
+        motorGun1.setPower(0);
+
+        drive.rot = 0;
+        drive.xComp = 1;
+        while (drive.driveToPosition(4000, 1) && opModeIsActive()) {}
+        sleep(200);
+        drive.xComp = 0;
+
+        drive.rot = 1;
         while (drive.driveToPosition(5000, 1) && opModeIsActive()) {}
-        drive.yComp = -1;
-        while (drive.driveToPosition(8000, 1) && opModeIsActive()) {}
+        sleep(200);
+        drive.rot =0;
+
     }
 }

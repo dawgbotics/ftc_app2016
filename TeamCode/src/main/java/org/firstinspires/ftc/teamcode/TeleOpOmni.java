@@ -49,9 +49,13 @@ public class TeleOpOmni extends OpMode {
     DcMotor motorGun1;
     DcMotor motorGun2;
 
-    DcMotor ballIntake;
+    DcMotor motorIntake;
 
-    double intake = 0;
+    private final static float SLOWEST_SPEED_FACTOR = 6;
+    private final static float MIDDLE_SPEED_FACTOR = 4;
+    private final static float FASTEST_SPEED_FACTOR = 1;
+
+    double speedFactor = FASTEST_SPEED_FACTOR;
 
     @Override
     public void loop() {
@@ -62,6 +66,10 @@ public class TeleOpOmni extends OpMode {
 
         if (gamepad1.a) {
             drive.reset();
+        }
+
+        if (drive.rot < .05 && drive.rot > -.05) {
+            drive.rot = 0;
         }
 
         drive.useGyro();
@@ -82,33 +90,54 @@ public class TeleOpOmni extends OpMode {
             speed = 1;
         }
 
-        //If you push both bumpers, you get the really slow mode
-        //If you push only one bumper, you get the slow mode
-        if (gamepad1.left_bumper && gamepad1.right_bumper) {
-            speed = speed / 12;
-        } else if (gamepad1.left_bumper || gamepad1.right_bumper) {
-            speed = speed / 4;
+        double right1 = gamepad1.right_trigger / 1.8;
+        double left1 = gamepad1.left_trigger / 1.8;
+        double right2 = gamepad2.right_trigger / 1.8;
+        double left2 = gamepad2.left_trigger / 1.8;
+
+        //Dead zone
+        if (right1 < .05) { right1 = 0; }
+        if (left1 < .05) { left1 = 0; }
+        if (right2 < .05) { right2 = 0; }
+        if (left2 < .05) { left2 = 0; }
+
+        //If you push the right trigger, the intake runs forwards (defaults to gamepad1) (defaults to forwards)
+        if (right1 > 0) {
+
+            motorIntake.setPower(right1);
+        } else if (right2 > 0) {
+            motorIntake.setPower(right2);
+        }
+        //If you push the left trigger on either, the intake runs backwards (defaults to gamepad1)
+        else if (left1 > 0) {
+            motorIntake.setPower(-left1);
+        } else if (left2 > 0){
+            motorIntake.setPower(-left2);
+        } else {
+            motorIntake.setPower(0);
         }
 
         //Gun
         double power =  -gamepad2.left_stick_y / 2;
-        power = Range.clip(power, 0, 1);
+        power = Range.clip(power, 0, .5);
 
         //Since the gears are interlocking, one motor needs to run backwards
         motorGun1.setPower(power);
         motorGun2.setPower(power);
 
-        drive.drive(speed);
-
-        if (gamepad2.x) {
-            intake = -1;
-        } if (gamepad2.y) {
-            intake = 0;
-        } if (gamepad2.b) {
-            intake = 1;
+        //If you push X, you get the slowest speed
+        //If you push Y, you get the middle speed
+        //If you push B, you get the fastest speed
+        if (gamepad1.x) {
+            speedFactor = SLOWEST_SPEED_FACTOR;
+        } if (gamepad1.y) {
+            speedFactor = MIDDLE_SPEED_FACTOR;
+        } if (gamepad1.b) {
+            speedFactor = FASTEST_SPEED_FACTOR;
         }
+        speed = speed/speedFactor;
 
-        ballIntake.setPower(intake);
+        drive.drive(speed, false);
     }
 
     @Override
@@ -118,13 +147,14 @@ public class TeleOpOmni extends OpMode {
         motorGun1 = hardwareMap.dcMotor.get("gun 1");
         motorGun2 = hardwareMap.dcMotor.get("gun 2");
 
-        ballIntake = hardwareMap.dcMotor.get("intake");
-        ballIntake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorIntake = hardwareMap.dcMotor.get("intake");
 
         motorGun1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motorGun2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motorGun1.setDirection(DcMotorSimple.Direction.REVERSE);
         motorGun2.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        motorIntake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
 }
