@@ -56,7 +56,7 @@ import org.opencv.core.Size;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@com.qualcomm.robotcore.eventloop.opmode.Autonomous(name="AutonomusBlue", group="autonomous")  // @Autonomous(...) is the other common choice
+@com.qualcomm.robotcore.eventloop.opmode.Autonomous(name="AutonomusRed", group="autonomous")  // @Autonomous(...) is the other common choice
 public class AutonomousBlue extends LinearVisionOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
@@ -65,19 +65,23 @@ public class AutonomousBlue extends LinearVisionOpMode {
     DcMotor motorGun1;
     DcMotor motorGun2;
 
+    int sleepTime = 0;
+
     @Override
     public void runOpMode() throws InterruptedException {
         waitForVisionStart();
-        //all of this stuff comes from and is explained in LinearVisionSample
+
+        //sets up gun and drive motors
         drive = new Drive(hardwareMap, "gyro", telemetry);
         drive.resetEncoders();
-        drive.runWithEncoders();
         motorGun1 = hardwareMap.dcMotor.get("gun 1");
         motorGun2 = hardwareMap.dcMotor.get("gun 2");
         motorGun1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motorGun2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motorGun1.setDirection(DcMotorSimple.Direction.REVERSE);
         motorGun2.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        //initializes camera
         this.setCamera(Cameras.PRIMARY);
         this.setFrameSize(new Size(900, 900));
         enableExtension(Extensions.BEACON);
@@ -91,68 +95,79 @@ public class AutonomousBlue extends LinearVisionOpMode {
         rotation.setActivityOrientationFixed(ScreenOrientation.LANDSCAPE);
         cameraControl.setColorTemperature(CameraControlExtension.ColorTemperature.AUTO);
         cameraControl.setAutoExposureCompensation();
+
+        //waits for start after 10 seconds and allows you to set initial delay
+        while (runtime.seconds() < 1000) {
+            if (gamepad1.a) {
+                sleepTime += 10;
+            } else if (gamepad1.b) {
+                sleepTime -= 10;
+            }
+            telemetry.addData("waitTime: ", sleepTime);
+        }
         waitForStart();
-        //commence main loop
+        sleep(sleepTime);
 
-        /*runtime.reset();
-        int sf = 0;
-        while(opModeIsActive()) {
-            sf++;
-            telemetry.clear();
-            telemetry.addData("Beacon Color", beacon.getAnalysis().getColorString());
-            telemetry.addData("mem", ""+sf);
-
-        }*/
-
-
+        //drives diagonally towards beacon
         drive.xComp = 1;
         drive.yComp = 1;
         drive.rot = 0;
-        while (drive.driveToPosition(9000, .7) && opModeIsActive()) {}
+        while (drive.driveToPosition(8000, .5) && opModeIsActive()) {}
+
+        //moves in to get camera in better location
         drive.yComp = 0;
         drive.rot = 0;
-        while (drive.driveToPosition(800, .4) && opModeIsActive()) {}
+        while (drive.driveToPosition(1000, .4) && opModeIsActive()) {}
+
         drive.xComp = 0;
 
+        //senses beacon color and moves to that side
         boolean done = false;
         String s;
         while (!done && opModeIsActive()) {
             s = beacon.getAnalysis().getColorString();
-            telemetry.addData("Color", s);
-            if (s.equals("blue, red")) {
-                drive.yComp = -1;
-                done = true;
-            } else if (s.equals("red, blue")) {
+            //telemetry.addData("Color", s);
+            if (s.equals("red, blue")) {
                 drive.yComp = 1;
+                done = true;
+            } else if (s.equals("blue, red")) {
+                drive.yComp = -1;
                 done = true;
             }
         }
-
         while (drive.driveToPosition(150, .3) && opModeIsActive()) {}
+
+        //presses button then moves away
         drive.xComp = 1;
         drive.yComp = 0;
-        while (drive.driveToPosition(1800, .4) && opModeIsActive()) {}
+        while (drive.driveToPosition(2000, .4) && opModeIsActive()) {}
+
         drive.xComp = -1;
         while (drive.driveToPosition(1700, .5) && opModeIsActive()) {}
+
+        //tunrns toward center goal
         drive.xComp = 0;
-        drive.rot = -1;
+        drive.rot = 1;
         drive.yComp = 0;
         while (drive.driveToPosition(3700, .2) && opModeIsActive()) {}
 
+        //fires gun
         motorGun1.setPower(.35);
         motorGun2.setPower(.35);
         sleep(4000);
         motorGun2.setPower(0);
         motorGun1.setPower(0);
 
+        drive.reset();
+
+        //moves to hit cap ball
         drive.rot = 0;
-        drive.xComp = 1;
+        drive.xComp = -1;
         while (drive.driveToPosition(4000, 1) && opModeIsActive()) {}
+
+        //rotates to pull cap ball of base plate
         drive.xComp = 0;
-
-        drive.rot = 1;
+        drive.rot = -1;
         while (drive.driveToPosition(5000, 1) && opModeIsActive()) {}
-        drive.rot =0;
-
     }
 }
