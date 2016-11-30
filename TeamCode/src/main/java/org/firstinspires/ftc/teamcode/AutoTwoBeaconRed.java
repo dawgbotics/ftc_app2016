@@ -43,8 +43,21 @@ import org.lasarobotics.vision.opmode.extensions.CameraControlExtension;
 import org.lasarobotics.vision.util.ScreenOrientation;
 import org.opencv.core.Size;
 
-@com.qualcomm.robotcore.eventloop.opmode.Autonomous(name="AutonomusRed", group="autonomous")  // @Autonomous(...) is the other common choice
-public class Autonomous extends LinearVisionOpMode {
+/**
+ * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
+ * the autonomous or the teleop period of an FTC match. The names of OpModes appear on the menu
+ * of the FTC Driver Station. When an selection is made from the menu, the corresponding OpMode
+ * class is instantiated on the Robot Controller and executed.
+ *
+ * This particular OpMode just executes a basic Tank Drive Teleop for a PushBot
+ * It includes all the skeletal structure that all linear OpModes contain.
+ *
+ * Use Android Studios to Copy this Class, and Paste it into your team's code folder with a new name.
+ * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
+ */
+
+@com.qualcomm.robotcore.eventloop.opmode.Autonomous(name="AutoRed2B", group="autonomous")  // @Autonomous(...) is the other common choice
+public class AutoTwoBeaconRed extends LinearVisionOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -95,20 +108,14 @@ public class Autonomous extends LinearVisionOpMode {
         waitForStart();
         sleep(sleepTime);
 
-        //drives diagonally towards beacon
+        //drives at diagonal to first beacon
         drive.xComp = 1;
         drive.yComp = -1;
         drive.rot = 0;
-        while (drive.driveToPosition(8000, .5) && opModeIsActive()) {}
+        while (drive.driveToPosition(4000, .5) && opModeIsActive()) {}
 
-        //moves in to get camera in better location
-        drive.yComp = 0;
-        drive.rot = 0;
-        while (drive.driveToPosition(1000, .4) && opModeIsActive()) {}
-
+        //senses becon color and moves to that side
         drive.xComp = 0;
-
-        //senses beacon color and moves to that side
         boolean done = false;
         String s;
         while (!done && opModeIsActive()) {
@@ -124,19 +131,46 @@ public class Autonomous extends LinearVisionOpMode {
         }
         while (drive.driveToPosition(150, .3) && opModeIsActive()) {}
 
-        //presses button then moves away
+        //presses beacon then moves back
         drive.xComp = 1;
         drive.yComp = 0;
-        while (drive.driveToPosition(2000, .4) && opModeIsActive()) {}
+        while (drive.driveToPosition(1000, .4) && opModeIsActive()) {}
 
         drive.xComp = -1;
-        while (drive.driveToPosition(1700, .5) && opModeIsActive()) {}
+        while (drive.driveToPosition(1000, .5) && opModeIsActive()) {}
 
-        //tunrns toward center goal
+        //moves towards next beacon
         drive.xComp = 0;
-        drive.rot = 1;
+        drive.yComp = -1;
+        while (drive.driveToPosition(3000, .5) && opModeIsActive()) {}
+
+        //senses color and moves to that side
+        done = false;
+        while (!done && opModeIsActive()) {
+            s = beacon.getAnalysis().getColorString();
+            //telemetry.addData("Color", s);
+            if (s.equals("red, blue")) {
+                drive.yComp = 1;
+                done = true;
+            } else if (s.equals("blue, red")) {
+                drive.yComp = -1;
+                done = true;
+            }
+        }
+        while (drive.driveToPosition(150, .3) && opModeIsActive()) {}
+
+        //presses button
+        drive.xComp = 1;
         drive.yComp = 0;
-        while (drive.driveToPosition(3700, .2) && opModeIsActive()) {}
+        while (drive.driveToPosition(1000, .4) && opModeIsActive()) {}
+
+        drive.reset();
+
+        //rotates while moving toward center goal
+        drive.xComp = -1;
+        drive.rot = -1;
+        drive.yComp = .2;
+        while (drive.driveToPosition(6000, .2) && opModeIsActive()) {}
 
         //fires gun
         motorGun1.setPower(.35);
@@ -147,13 +181,15 @@ public class Autonomous extends LinearVisionOpMode {
 
         drive.reset();
 
-        //moves to hit cap ball
+        //moves and hits cap ball
         drive.rot = 0;
         drive.xComp = -1;
-        while (drive.driveToPosition(4000, 1) && opModeIsActive()) {}
+        drive.yComp = 1;
+        while (drive.driveToPosition(3000, 1) && opModeIsActive()) {}
 
-        //rotates to pull cap ball of base plate
+        //rotates to push cap ball off bse plate
         drive.xComp = 0;
+        drive.yComp = 0;
         drive.rot = 1;
         while (drive.driveToPosition(5000, 1) && opModeIsActive()) {}
     }

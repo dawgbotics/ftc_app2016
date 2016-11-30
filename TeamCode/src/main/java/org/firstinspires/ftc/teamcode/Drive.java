@@ -9,14 +9,20 @@ import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class Drive {
     //Initializes a factor for the speed of movement to a position
-    public static final double BASE_SPEED = .5;
+    public static final double BASE_SPEED = .4;
     //How much the robot is rotated when we start (as in, the wheels are in a diamond, not a square)
     public static final int OFFSET = 225;
 
+    /***instance variables***/
+
+    //stores the components of the movement vector the robot will use
     double xComp;
     double yComp;
     double rot;
+
+    //stores gyro data
     int oldGyro = OFFSET;
+    int newGyro = OFFSET;
 
     //Scales the rotation speed by this factor
     static final double ROT_RATIO = .7;
@@ -29,6 +35,13 @@ public class Drive {
     Gyro gyro;
     Telemetry telemetry;
 
+    /**
+     * Constructor for Drive, it creates the motors and the gyro objects
+     *
+     * @param hardwareMap hardware map of robot so Drive can use motors
+     * @param gyroName name of gyro in config file to initialize it
+     * @param telemetry telemetry so Drive can send data to the phone
+     */
     public Drive(HardwareMap hardwareMap, String gyroName, Telemetry telemetry) {
         //Initialize motors and gyro
         motorLeftBack = hardwareMap.dcMotor.get("back left");
@@ -36,49 +49,95 @@ public class Drive {
         motorRightBack = hardwareMap.dcMotor.get("back right");
         motorRightFront = hardwareMap.dcMotor.get("front right");
 
-        motorLeftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        motorLeftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        motorRightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        motorRightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
         gyro = new Gyro(hardwareMap, gyroName);
         this.telemetry = telemetry;
     }
 
-    //Currently uncommented because it doesn't work BUT NEEDS COMMENTS SOMETIME IN THE FUTURE
-    public boolean driveToPosition(int targetTicks, double speed) {
+    /**
+     * sets all the motors to run using the PID algorithms and encoders
+     */
+    public void runWithEncoders(){
+        motorLeftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorLeftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorRightBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorRightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
+    /**
+     * sets all the motors to run not using the PID algorithms and encoders
+     */
+    public void runWithoutEncoders(){
+        motorLeftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorLeftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorRightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorRightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+    }
+
+    /**
+     * resents the encoder counts of all motors
+     */
+    public void resetEncoders() {
+        motorLeftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motorLeftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motorRightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motorRightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    }
+
+    /**
+     * Runs the robot to the target location, returning true while it has not
+     * reached the target then false once it has. Also speeds up and slows down
+     *
+     * @param targetTicks the tick count you want o reach with at least one of your motors
+     * @param speed speed at which to travel
+     * @return returns if it is still not completed yet
+     */
+    public boolean driveToPosition(double targetTicks, double speed) {
         telemetry.addData("Left Back: ", motorLeftBack.getCurrentPosition());
         telemetry.addData("Left Front: ", motorLeftFront.getCurrentPosition());
         telemetry.addData("Right Back: ", motorRightBack.getCurrentPosition());
         telemetry.addData("Right Front: ", motorRightFront.getCurrentPosition());
 
-        int currentTicks = (int) max(motorLeftBack.getCurrentPosition(), motorLeftFront.getCurrentPosition(),
+        //finds the maximum of all encoder counts
+        double currentTicks = max(motorLeftBack.getCurrentPosition(), motorLeftFront.getCurrentPosition(),
                motorRightBack.getCurrentPosition(), motorRightFront.getCurrentPosition());
+        //if it has not reached the target, it tests if it is in the last or first fifth of the way there, and
+        //scales the speed such that it speds up and slows down to BASE_SPEED as it reaches the target
         if (currentTicks <= targetTicks) {
             if (currentTicks / targetTicks > .8) {
                 speed *= BASE_SPEED + ((targetTicks - currentTicks) / (targetTicks / 5)) * (1 - BASE_SPEED);
             } else if (currentTicks / targetTicks < .2) {
                 speed *= BASE_SPEED + (currentTicks / (targetTicks / 5)) * (1 - BASE_SPEED);
             }
+        //if it has reached target, stop moving, reset encoders, and return false
         } else {
-            drive(0);
+            drive(0, false);
+            this.resetEncoders();
+            this.runWithoutEncoders();
             return false;
         }
         speed = Range.clip(speed, 0, 1);
-        drive(speed);
+        useGyro();
+        drive(speed, true);
         return true;
     }
 
+    /**
+     * resets the gyro value to the OFFSET value
+     */
     public void reset() {
         gyro.reset();
         oldGyro = OFFSET;
+        newGyro = OFFSET;
     }
 
+    /**
+     * uses the gyro, first reading from the gyro then setting rotation to
+     * auto correct if the robot gets off
+     */
     public void useGyro() {
         gyro.readZ();
         double r = 0;
-        telemetry.addData("Gyro Z: ", gyro.getAngleZ());
-        telemetry.addData("Rot: ", rot);
+        newGyro = gyro.getAngleZ();
         if (rot == 0) {
             double gyroDiff = gyro.getAngleZ() - oldGyro;
             telemetry.addData("oldGyro: ", oldGyro);
@@ -88,38 +147,38 @@ public class Drive {
             //but the bot thinks that's 359 degree difference
             //Scales -180 to 180 ==> -1 to 1
             if (gyroDiff < -180) {
-                r = (180 + gyroDiff) / 180; //replaced (1.5 * (gyroDiff/180)) because function of 1.5 is unknown
-            }
-            if (gyroDiff > 180) {
-                r = (180 - gyroDiff) / 180; //replaced (1.5 * (gyroDiff/180)) because function of 1.5 is unknown
-            } else {
-                r = (gyroDiff) / 180; //replaced (1.5 * (gyroDiff/180)) because function of 1.5 is unknown
+                r = (180 + gyroDiff) / 180;
+            }else if (gyroDiff > 180) {
+                r = (180 - gyroDiff) / 180;
+            }else {
+                r = (gyroDiff) / 180;
             }
         } else {
-            //If the bot is turning, then update the gyro again
+            //If the bot is turning, then update the gyro data in drive again
             oldGyro = gyro.getAngleZ();
             r = rot;
         }
 
         rot = Range.clip(r, -1, 1);
-
-        //Absolutely no idea. XD
-        //double temp = xComp;
-        //xComp = xComp * Math.cos(gyro.getAngleZ()) - yComp * Math.sin(gyro.getAngleZ());
-        //yComp = temp * Math.sin(gyro.getAngleZ()) + yComp * Math.cos(gyro.getAngleZ());
     }
 
-    public void drive(double speed) {
-        //Keep speed <= 1 for proper scaling
+    /**
+     * main drive function: drives all omni drive motors at specified speeds
+     *
+     * @param speed speed at which to move robot, 0 to 1
+     * @param useEncoders enables or disables PID and encoder control
+     */
+    public void drive(double speed, boolean useEncoders) {
 
-        motorLeftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        motorLeftFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        motorRightBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        motorRightFront.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        if (useEncoders) {
+            this.runWithEncoders();
+        } else {
+            this.runWithoutEncoders();
+        }
 
         double[] speedWheel = new double[4];
 
-        int m = oldGyro;
+        int m = newGyro;
         for (int n = 0; n <= 3; n++) {
             //This \/ rotates the control input to make it work on each motor and assigns the initial wheel power ratios
             speedWheel[n] = xComp * Math.cos(Math.toRadians(m)) + yComp * Math.sin(Math.toRadians(m)) + ROT_RATIO * rot;
@@ -130,17 +189,10 @@ public class Drive {
 
         }
 
-        /*
-        Indexes:
-        0 is the right front motor
-        1 is the left front motor
-        2 is the left back motor
-        3 is the right back motor
-         */
-
         //In order to handle the problem if the values in speedWheel[] are greater than 1,
         //this scales them so the ratio between the values stays the same, but makes sure they're
-        //less than 1
+        //less than 1. Then it multiplies it by speed to incorporate the speed at which
+        //you want the robot to go
         double scaler = Math.abs(max(speedWheel[0], speedWheel[1], speedWheel[2], speedWheel[3]));
         //if the scaler is 0, it will cause a divide by 0 error
         if (scaler != 0) {
@@ -156,7 +208,15 @@ public class Drive {
         motorRightBack.setPower(speedWheel[3]);
     }
 
-    //Returns the maximum of four variables
+    /**
+     * finds and returns the largest magnitude of four doubles
+     *
+     * @param a first value
+     * @param b second value
+     * @param c third value
+     * @param d fourth value
+     * @return return the maximum of all decimals
+     */
     public double max(double a, double b, double c, double d) {
 
         a = Math.abs(a);
@@ -173,32 +233,5 @@ public class Drive {
             }
         }
         return max;
-
-        //We can't use a long loop because it has to take less time than a phone tick, so if that ^ code doesn't
-        //run fast enough, we can just use this \/ code instead.
-/*
-        a = Math.abs(a);
-        b = Math.abs(b);
-        c = Math.abs(c);
-        d = Math.abs(d);
-
-        if (d > a && d > b && d > c) {
-            return d;
-        }
-        if (c > a && c > b && c > d) {
-            return c;
-        }
-        if (b > a && b > c && b > d) {
-            return b;
-        }
-        return a;
-*/
-    }
-
-    public void resetEncoders() {
-        motorLeftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorLeftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorRightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        motorRightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
 }

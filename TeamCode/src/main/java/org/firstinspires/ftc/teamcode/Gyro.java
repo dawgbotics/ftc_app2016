@@ -44,9 +44,9 @@ public class Gyro {
         gyro = hardwareMap.i2cDevice.get(gyroName);
         gyroReader = new I2cDeviceSynchImpl(gyro, GYRO_ADDRESS, false);
         gyroReader.engage();
-        gyroReader.write8(LOW_ODR, 0x00, true);  // Power on and enable ADC
-        gyroReader.write8(CTRL4, 0x00, true); // Set gain
-        gyroReader.write8(CTRL1, 0x6F, true);// Set integration time
+        gyroReader.write8(LOW_ODR, 0x00, true); // Sets return rate to default
+        gyroReader.write8(CTRL4, 0x00, true); // enables x, y, and z
+        gyroReader.write8(CTRL1, 0x6F, true);// enables gyo
     }
 
     /**
@@ -104,7 +104,7 @@ public class Gyro {
         for (int i = 0; i < 3; i++) {
             gyroValues[i] = (gyroCache[2 * i] & 0xFF) + (gyroCache[2 * i + 1] & 0xFF) * 256;
 
-            diff[i] = (gyroValues[i] + Math.abs(gyroValues[i]) / OFFSET) * (timer.milliseconds() - oldTime);
+            diff[i] = (gyroValues[i] +  OFFSET) * (timer.milliseconds() - oldTime);
         }
 
         angleX += diff[1];

@@ -43,8 +43,21 @@ import org.lasarobotics.vision.opmode.extensions.CameraControlExtension;
 import org.lasarobotics.vision.util.ScreenOrientation;
 import org.opencv.core.Size;
 
+/**
+ * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
+ * the autonomous or the teleop period of an FTC match. The names of OpModes appear on the menu
+ * of the FTC Driver Station. When an selection is made from the menu, the corresponding OpMode
+ * class is instantiated on the Robot Controller and executed.
+ *
+ * This particular OpMode just executes a basic Tank Drive Teleop for a PushBot
+ * It includes all the skeletal structure that all linear OpModes contain.
+ *
+ * Use Android Studios to Copy this Class, and Paste it into your team's code folder with a new name.
+ * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
+ */
+
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous(name="AutonomusRed", group="autonomous")  // @Autonomous(...) is the other common choice
-public class Autonomous extends LinearVisionOpMode {
+public class AutonomousBlue extends LinearVisionOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
 
@@ -97,7 +110,7 @@ public class Autonomous extends LinearVisionOpMode {
 
         //drives diagonally towards beacon
         drive.xComp = 1;
-        drive.yComp = -1;
+        drive.yComp = 1;
         drive.rot = 0;
         while (drive.driveToPosition(8000, .5) && opModeIsActive()) {}
 
@@ -154,7 +167,7 @@ public class Autonomous extends LinearVisionOpMode {
 
         //rotates to pull cap ball of base plate
         drive.xComp = 0;
-        drive.rot = 1;
+        drive.rot = -1;
         while (drive.driveToPosition(5000, 1) && opModeIsActive()) {}
     }
 }
