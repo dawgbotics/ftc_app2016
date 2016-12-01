@@ -84,7 +84,7 @@ public class Autonomous extends LinearVisionOpMode {
         cameraControl.setAutoExposureCompensation();
 
         //waits for start after 10 seconds and allows you to set initial delay
-        while (runtime.seconds() < 1000) {
+        while (runtime.seconds() < 10 && opModeIsActive()) {
             if (gamepad1.a) {
                 sleepTime += 10;
             } else if (gamepad1.b) {

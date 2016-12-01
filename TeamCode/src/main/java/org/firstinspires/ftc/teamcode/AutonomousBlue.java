@@ -56,7 +56,7 @@ import org.opencv.core.Size;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@com.qualcomm.robotcore.eventloop.opmode.Autonomous(name="AutonomusRed", group="autonomous")  // @Autonomous(...) is the other common choice
+@com.qualcomm.robotcore.eventloop.opmode.Autonomous(name="AutonomusBlue", group="autonomous")  // @Autonomous(...) is the other common choice
 public class AutonomousBlue extends LinearVisionOpMode {
 
     private ElapsedTime runtime = new ElapsedTime();
@@ -97,7 +97,7 @@ public class AutonomousBlue extends LinearVisionOpMode {
         cameraControl.setAutoExposureCompensation();
 
         //waits for start after 10 seconds and allows you to set initial delay
-        while (runtime.seconds() < 1000) {
+        while (runtime.seconds() < 10 && opModeIsActive()) {
             if (gamepad1.a) {
                 sleepTime += 10;
             } else if (gamepad1.b) {
