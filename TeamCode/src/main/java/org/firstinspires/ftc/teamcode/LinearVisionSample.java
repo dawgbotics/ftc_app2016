@@ -92,7 +92,7 @@ public class LinearVisionSample extends LinearVisionOpMode {
          */
         rotation.setIsUsingSecondaryCamera(false);
         rotation.disableAutoRotate();
-        rotation.setActivityOrientationFixed(ScreenOrientation.PORTRAIT);
+        rotation.setActivityOrientationFixed(ScreenOrientation.LANDSCAPE);
 
         /**
          * Set camera control extension preferences
