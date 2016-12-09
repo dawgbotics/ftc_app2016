@@ -51,6 +51,8 @@ public class TeleOpOmni extends OpMode {
 
     DcMotor motorIntake;
 
+    DcMotor motorArm;
+
     private final static float SLOWEST_SPEED_FACTOR = 6;
     private final static float MIDDLE_SPEED_FACTOR = 4;
     private final static float FASTEST_SPEED_FACTOR = 1;
@@ -103,7 +105,6 @@ public class TeleOpOmni extends OpMode {
 
         //If you push the right trigger, the intake runs forwards (defaults to gamepad1) (defaults to forwards)
         if (right1 > 0) {
-
             motorIntake.setPower(right1);
         } else if (right2 > 0) {
             motorIntake.setPower(right2);
@@ -115,6 +116,26 @@ public class TeleOpOmni extends OpMode {
             motorIntake.setPower(-left2);
         } else {
             motorIntake.setPower(0);
+        }
+
+        boolean rightB1 = gamepad1.right_bumper;
+        boolean rightB2 = gamepad2.right_bumper;
+        boolean leftB1 = gamepad1.left_bumper;
+        boolean leftB2 = gamepad2.left_bumper;
+
+        //If a right and a left on any combination of controllers are being pushed, this is true.
+        boolean conflict = (rightB1 && leftB1) || (rightB2 && leftB2) ||
+                (rightB1 && leftB2) || (leftB1 && rightB2);
+
+        //If a right button is being pushed and there are no conflicts, go forwards
+        if ((rightB1 || rightB2) && !conflict) {
+            motorArm.setPower(1);
+        } //If a left button is being pushed and there are no conflicts, go backwards
+        else if ((leftB1 || leftB2) && !conflict) {
+            motorArm.setPower(-1);
+        } //If there are conflicts or no buttons are being pushed, stop the arm
+        else {
+            motorArm.setPower(0);
         }
 
         //Gun
@@ -149,12 +170,15 @@ public class TeleOpOmni extends OpMode {
 
         motorIntake = hardwareMap.dcMotor.get("intake");
 
+        motorArm = hardwareMap.dcMotor.get("arm");
+
         motorGun1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motorGun2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motorGun1.setDirection(DcMotorSimple.Direction.REVERSE);
         motorGun2.setDirection(DcMotorSimple.Direction.FORWARD);
 
         motorIntake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorArm.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
 }
