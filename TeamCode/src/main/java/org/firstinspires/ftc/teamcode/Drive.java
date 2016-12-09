@@ -137,7 +137,7 @@ public class Drive {
     public void useGyro() {
         gyro.readZ();
         double r = 0;
-        oldGyro = gyro.getAngleZ();
+        telemetry.addData("gyro", gyro.getAngleZ());
         if (rot == 0) {
             double gyroDiff = gyro.getAngleZ() - oldGyro;
             telemetry.addData("oldGyro: ", oldGyro);
@@ -147,15 +147,15 @@ public class Drive {
             //but the bot thinks that's 359 degree difference
             //Scales -180 to 180 ==> -1 to 1
             if (gyroDiff < -180) {
-                r = (180 + gyroDiff) / 180;
+                r = (180 + gyroDiff) / 180 * 1.5;
             }else if (gyroDiff > 180) {
-                r = (180 - gyroDiff) / 180;
+                r = (180 - gyroDiff) / 180 * 1.5;
             }else {
-                r = (gyroDiff) / 180;
+                r = (gyroDiff) / 180 * 1.5;
             }
         } else {
             //If the bot is turning, then update the gyro data in drive again
-            //oldGyro = gyro.getAngleZ();
+            oldGyro = gyro.getAngleZ();
             r = rot;
         }
 

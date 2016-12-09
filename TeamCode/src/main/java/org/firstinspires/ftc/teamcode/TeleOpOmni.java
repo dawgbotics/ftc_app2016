@@ -76,7 +76,7 @@ public class TeleOpOmni extends OpMode {
             drive.rot = 0;
         }
 
-        //drive.useGyro();
+        drive.useGyro();
 
         //This \/ is the controller dead zone
         if (drive.rot < .05 && drive.rot > -.05) {
@@ -199,6 +199,8 @@ public class TeleOpOmni extends OpMode {
 
         motorIntake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motorArm.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        motorHand.setPosition(0);
     }
 
 }
