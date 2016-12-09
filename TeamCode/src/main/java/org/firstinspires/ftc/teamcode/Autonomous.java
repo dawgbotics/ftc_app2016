@@ -31,7 +31,6 @@ TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package org.firstinspires.ftc.teamcode;
-
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -41,6 +40,8 @@ import org.lasarobotics.vision.ftc.resq.Beacon;
 import org.lasarobotics.vision.opmode.LinearVisionOpMode;
 import org.lasarobotics.vision.opmode.extensions.CameraControlExtension;
 import org.lasarobotics.vision.util.ScreenOrientation;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
 import org.opencv.core.Size;
 
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous(name="AutonomusRed", group="autonomous")  // @Autonomous(...) is the other common choice
@@ -51,12 +52,13 @@ public class Autonomous extends LinearVisionOpMode {
     Drive drive;
     DcMotor motorGun1;
     DcMotor motorGun2;
-
+    VisionRectange recrec;
     int sleepTime = 0;
 
     @Override
     public void runOpMode() throws InterruptedException {
         waitForVisionStart();
+
 
         //sets up gun and drive motors
         drive = new Drive(hardwareMap, "gyro", telemetry);
@@ -82,6 +84,8 @@ public class Autonomous extends LinearVisionOpMode {
         rotation.setActivityOrientationFixed(ScreenOrientation.LANDSCAPE);
         cameraControl.setColorTemperature(CameraControlExtension.ColorTemperature.AUTO);
         cameraControl.setAutoExposureCompensation();
+        this.recrec = new VisionRectange();
+        this.recrec.setup();
 
         //waits for start after 10 seconds and allows you to set initial delay
         while (runtime.seconds() < 10 && opModeIsActive()) {
@@ -124,6 +128,18 @@ public class Autonomous extends LinearVisionOpMode {
         }
         while (drive.driveToPosition(150, .3) && opModeIsActive()) {}
 
+        //this is where the rectangle dimensions of the lower image happen
+        Mat output = new Mat(4, 1, CvType.CV_32FC2);
+        while (!output.empty()) {
+            if (hasNewFrame()) {
+                output = this.recrec.processFrame(getFrameRgba(), getFrameGray());
+                discardFrame();
+            }
+        }
+        // at this point output is a 4x1 array containing four double[] with x,y in them as points on the
+
+
+
         //presses button then moves away
         drive.xComp = 1;
         drive.yComp = 0;
@@ -155,6 +171,7 @@ public class Autonomous extends LinearVisionOpMode {
         //rotates to pull cap ball of base plate
         drive.xComp = 0;
         drive.rot = 1;
+
         while (drive.driveToPosition(5000, 1) && opModeIsActive()) {}
     }
 }
