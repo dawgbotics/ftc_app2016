@@ -37,6 +37,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 @TeleOp(name = "TeleOp", group = "Iterative Opmode")
@@ -50,8 +51,9 @@ public class TeleOpOmni extends OpMode {
     DcMotor motorGun2;
 
     DcMotor motorIntake;
-
     DcMotor motorArm;
+
+    Servo motorHand;
 
     private final static float SLOWEST_SPEED_FACTOR = 6;
     private final static float MIDDLE_SPEED_FACTOR = 4;
@@ -74,7 +76,7 @@ public class TeleOpOmni extends OpMode {
             drive.rot = 0;
         }
 
-        drive.useGyro();
+        //drive.useGyro();
 
         //This \/ is the controller dead zone
         if (drive.rot < .05 && drive.rot > -.05) {
@@ -118,6 +120,8 @@ public class TeleOpOmni extends OpMode {
             motorIntake.setPower(0);
         }
 
+        /*
+        //Code for both people to have control
         boolean rightB1 = gamepad1.right_bumper;
         boolean rightB2 = gamepad2.right_bumper;
         boolean leftB1 = gamepad1.left_bumper;
@@ -136,6 +140,21 @@ public class TeleOpOmni extends OpMode {
         } //If there are conflicts or no buttons are being pushed, stop the arm
         else {
             motorArm.setPower(0);
+        }
+        */
+
+        //Code for gamepad2 to have control
+        double towerInput = gamepad2.right_stick_y;
+        towerInput = Range.clip(towerInput, -1, 1);
+
+        motorArm.setPower(towerInput);
+
+        //Hand
+        if (gamepad2.right_bumper) { //
+            motorHand.setPosition(Range.clip(motorHand.getPosition() + .005, 0, 1));
+        }
+        if (gamepad2.left_bumper) {
+            motorHand.setPosition(Range.clip(motorHand.getPosition() - .005, 0, 1));
         }
 
         //Gun
@@ -170,7 +189,8 @@ public class TeleOpOmni extends OpMode {
 
         motorIntake = hardwareMap.dcMotor.get("intake");
 
-        motorArm = hardwareMap.dcMotor.get("arm");
+        motorArm = hardwareMap.dcMotor.get("tower");
+        motorHand = hardwareMap.servo.get("hand");
 
         motorGun1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motorGun2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);

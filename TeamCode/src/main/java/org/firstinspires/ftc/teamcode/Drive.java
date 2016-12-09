@@ -22,7 +22,7 @@ public class Drive {
 
     //stores gyro data
     int oldGyro = OFFSET;
-    int newGyro = OFFSET;
+    //int newGyro = OFFSET;
 
     //Scales the rotation speed by this factor
     static final double ROT_RATIO = .7;
@@ -127,7 +127,7 @@ public class Drive {
     public void reset() {
         gyro.reset();
         oldGyro = OFFSET;
-        newGyro = OFFSET;
+        //newGyro = OFFSET;
     }
 
     /**
@@ -137,7 +137,7 @@ public class Drive {
     public void useGyro() {
         gyro.readZ();
         double r = 0;
-        newGyro = gyro.getAngleZ();
+        oldGyro = gyro.getAngleZ();
         if (rot == 0) {
             double gyroDiff = gyro.getAngleZ() - oldGyro;
             telemetry.addData("oldGyro: ", oldGyro);
@@ -155,7 +155,7 @@ public class Drive {
             }
         } else {
             //If the bot is turning, then update the gyro data in drive again
-            oldGyro = gyro.getAngleZ();
+            //oldGyro = gyro.getAngleZ();
             r = rot;
         }
 
@@ -178,7 +178,7 @@ public class Drive {
 
         double[] speedWheel = new double[4];
 
-        int m = newGyro;
+        int m = oldGyro;
         for (int n = 0; n <= 3; n++) {
             //This \/ rotates the control input to make it work on each motor and assigns the initial wheel power ratios
             speedWheel[n] = xComp * Math.cos(Math.toRadians(m)) + yComp * Math.sin(Math.toRadians(m)) + ROT_RATIO * rot;
