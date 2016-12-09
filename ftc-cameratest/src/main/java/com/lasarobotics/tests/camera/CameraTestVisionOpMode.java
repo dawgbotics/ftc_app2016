@@ -88,7 +88,6 @@ public class CameraTestVisionOpMode extends TestableVisionOpMode {
 
     @Override
     public Mat frame(Mat rgba, Mat gray) {
-
         try {
             rgba = super.frame(rgba, gray);
             gray = Color.rapidConvertRGBAToGRAY(rgba);
