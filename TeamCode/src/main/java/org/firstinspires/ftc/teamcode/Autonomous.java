@@ -42,6 +42,7 @@ import org.lasarobotics.vision.opmode.extensions.CameraControlExtension;
 import org.lasarobotics.vision.util.ScreenOrientation;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
 import org.opencv.core.Size;
 
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous(name="AutonomusRed", group="autonomous")  // @Autonomous(...) is the other common choice
@@ -52,7 +53,7 @@ public class Autonomous extends LinearVisionOpMode {
     Drive drive;
     DcMotor motorGun1;
     DcMotor motorGun2;
-    VisionRectange recrec;
+    VisionRectangle recrec;
     int sleepTime = 0;
 
     @Override
@@ -84,8 +85,7 @@ public class Autonomous extends LinearVisionOpMode {
         rotation.setActivityOrientationFixed(ScreenOrientation.LANDSCAPE);
         cameraControl.setColorTemperature(CameraControlExtension.ColorTemperature.AUTO);
         cameraControl.setAutoExposureCompensation();
-        this.recrec = new VisionRectange();
-        this.recrec.setup();
+        this.recrec = new VisionRectangle();
 
         //waits for start after 10 seconds and allows you to set initial delay
         while (runtime.seconds() < 10 && opModeIsActive()) {
@@ -112,6 +112,24 @@ public class Autonomous extends LinearVisionOpMode {
 
         drive.xComp = 0;
 
+        // Setup vision rectangle with specified image pattern
+        this.recrec.setup("legos");
+
+        // Grab the corners, and their average X value, of the image
+        Mat output = new Mat();
+        while (output.empty()) {
+            if (hasNewFrame()) {
+                output = this.recrec.processFrame(getFrameRgba(), getFrameGray());
+                discardFrame();
+            }
+        }
+
+        Point p1 = new Point(output.get(0, 0));
+        Point p2 = new Point(output.get(1, 0));
+        Point p3 = new Point(output.get(2, 0));
+        Point p4 = new Point(output.get(3, 0));
+        double avgX = (p1.x + p2.x + p3.x + p4.x) / 4.0;
+
         //senses beacon color and moves to that side
         boolean done = false;
         String s;
@@ -127,18 +145,6 @@ public class Autonomous extends LinearVisionOpMode {
             }
         }
         while (drive.driveToPosition(150, .3) && opModeIsActive()) {}
-
-        //this is where the rectangle dimensions of the lower image happen
-        Mat output = new Mat(4, 1, CvType.CV_32FC2);
-        while (!output.empty()) {
-            if (hasNewFrame()) {
-                output = this.recrec.processFrame(getFrameRgba(), getFrameGray());
-                discardFrame();
-            }
-        }
-        // at this point output is a 4x1 array containing four double[] with x,y in them as points on the
-
-
 
         //presses button then moves away
         drive.xComp = 1;

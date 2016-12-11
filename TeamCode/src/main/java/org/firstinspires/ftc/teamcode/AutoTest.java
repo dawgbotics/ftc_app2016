@@ -16,31 +16,23 @@ import org.opencv.core.Size;
 @com.qualcomm.robotcore.eventloop.opmode.Autonomous(name="auto test", group="autonomous")  // @Autonomous(...) is the other common choice
 public class AutoTest extends LinearVisionOpMode {
 
-    VisionRectange recrec;
+    VisionRectangle recrec;
 
     @Override
     public void runOpMode() throws InterruptedException {
         waitForVisionStart();
-        this.recrec = new VisionRectange();
+        this.recrec = new VisionRectangle();
+        this.recrec.setImage("legos");
         this.recrec.setup();
 
         this.setCamera(Cameras.PRIMARY);
         this.setFrameSize(new Size(900, 900));
-        enableExtension(Extensions.BEACON);
-        enableExtension(Extensions.ROTATION);
-        enableExtension(Extensions.CAMERA_CONTROL);
-        beacon.setAnalysisMethod(Beacon.AnalysisMethod.FAST);
-        beacon.setColorToleranceRed(0);
-        beacon.setColorToleranceBlue(0);
-        rotation.setIsUsingSecondaryCamera(false);
-        rotation.disableAutoRotate();
-        rotation.setActivityOrientationFixed(ScreenOrientation.LANDSCAPE);
         cameraControl.setColorTemperature(CameraControlExtension.ColorTemperature.AUTO);
         cameraControl.setAutoExposureCompensation();
 
         waitForStart();
         int a = 0;
-        Mat output = new Mat();
+        Mat output;
         while(opModeIsActive()) {
             output = new Mat();
             while (output.empty()) {
@@ -58,18 +50,6 @@ public class AutoTest extends LinearVisionOpMode {
             Point p2 =  new Point(output.get(2, 0));
             Point p3 = new Point(output.get(3,0));
             telemetry.addData("avg X: ",(p.x + p1.x + p2.x + p3.x) / 4.0);
-            }
-            //double[][] tt = new double[][]{{0.1, 0.3}, {2.3, 4.2}};
-
-
-        //double offset = (output.get(0,0)[0] + output.get(1,0)[0] + output.get(2,0)[0] + output.get(3,0)[0]) / 4;
-
-
-//        offset = offset / 200;
-  //      if (offset > 1) {
-    //        offset = 1;
-      //  } else if (offset < -1) {
-        //    offset = 1;
-     //   }
+        }
     }
 }

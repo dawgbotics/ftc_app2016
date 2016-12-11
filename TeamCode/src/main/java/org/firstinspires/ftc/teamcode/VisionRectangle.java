@@ -29,7 +29,7 @@ import static org.opencv.imgcodecs.Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE;
  * Created by tommy on 12/6/16.
  */
 
-public class VisionRectange {
+public class VisionRectangle {
     Mat image;
     FeatureDetector fd;
     DescriptorExtractor dx;
@@ -37,13 +37,27 @@ public class VisionRectange {
     MatOfKeyPoint objectpoints;
     MatOfKeyPoint objectdescriptors;
 
-    public void setup() {
+    public void setup(String name) {
         this.image = new Mat(new Size(480, 360), CvType.CV_8UC1);
         try {
-            this.image = Utils.loadResource(getContext(), R.drawable.legos, CV_LOAD_IMAGE_GRAYSCALE);
+            switch (name) {
+                case "legos":
+                    this.image = Utils.loadResource(getContext(), R.drawable.legos, CV_LOAD_IMAGE_GRAYSCALE);
+                    break;
+                case "gears":
+                    this.image = Utils.loadResource(getContext(), R.drawable.gears, CV_LOAD_IMAGE_GRAYSCALE);
+                    break;
+                case "tools":
+                    this.image = Utils.loadResource(getContext(), R.drawable.tools, CV_LOAD_IMAGE_GRAYSCALE);
+                    break;
+                case "wheels":
+                    this.image = Utils.loadResource(getContext(), R.drawable.wheels, CV_LOAD_IMAGE_GRAYSCALE);
+                    break;
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         this.objectpoints =  new MatOfKeyPoint();
         this.fd = FeatureDetector.create(FeatureDetector.BRISK);
         this.fd.detect(this.image, objectpoints);
@@ -52,6 +66,7 @@ public class VisionRectange {
         this.dx.compute(this.image, objectpoints, objectdescriptors);
         this.dm = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMINGLUT);
     }
+
     public Mat processFrame(Mat rgba, Mat grey) {
         try {
         MatOfKeyPoint sceneKeyPoints = new MatOfKeyPoint();
@@ -124,4 +139,5 @@ public class VisionRectange {
         Mat failed_data = new Mat();
         return failed_data;
     }
+
 }
