@@ -14,18 +14,19 @@ public class Gyro {
     final static int STATUS = 0xA7;
 
     final static int OUT_X_L = 0xA8;
+
     final static int OUT_Z_H = 0xAD;
 
     final static int LOW_ODR = 0x39;
 
     //instance variables
-    private double angleX = 0;
+    private double angleX  = 0;
     private double angleY = 0;
     private double angleZ = 0;
 
     private ElapsedTime timer;
     private double oldTime = 0;
-    final static double OFFSET = .09;
+    final static double OFFSET = .08;
     final static double SCALE = 440;
 
     static final I2cAddr GYRO_ADDRESS = new I2cAddr(0x6B);
@@ -62,7 +63,7 @@ public class Gyro {
      * resets gyro, setting angle back to zero
      */
     public void reset() {
-        this.angleZ = Drive.OFFSET;
+        this.angleZ = 0;
         this.angleY = 0;
         this.angleX = 0;
     }

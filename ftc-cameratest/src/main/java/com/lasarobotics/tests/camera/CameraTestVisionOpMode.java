@@ -5,6 +5,8 @@
 
 package com.lasarobotics.tests.camera;
 
+import android.os.Environment;
+
 import org.lasarobotics.vision.image.Drawing;
 import org.lasarobotics.vision.opmode.TestableVisionOpMode;
 import org.lasarobotics.vision.util.color.Color;
@@ -64,13 +66,14 @@ public class CameraTestVisionOpMode extends TestableVisionOpMode {
         this.objectdescriptors = new MatOfKeyPoint();
         this.dx = DescriptorExtractor.create(DescriptorExtractor.BRISK);
         this.dx.compute(this.image, objectpoints, objectdescriptors);
-        // test difference between lut and not
-        this.dm = DescriptorMatcher.create(DescriptorMatcher.BRUTEFORCE_HAMMINGLUT);
+        this.dm = DescriptorMatcher.create(DescriptorMatcher.FLANNBASED);
         // Uri path = Uri.parse("android.resource://com.lasarobotics.tests.camera/" + R.);
+        File dir = Environment.getExternalStorageDirectory();
+        File file = new File(dir, "flann.yml");
         //File file = new File("flann.yml");
-        //String filePath = file.getAbsolutePath();
-        //System.out.print(filePath);
-        //this.dm.read(filePath);
+        String filePath = file.getPath();
+        System.out.print(filePath);
+        this.dm.read(filePath);
 
 
 

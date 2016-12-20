@@ -81,7 +81,7 @@ public class AutoBallBlue extends LinearOpMode {
         motorGun2.setDirection(DcMotorSimple.Direction.FORWARD);
 
         //waits for start and allows you to set initial delay
-        while (!isStarted()) {
+        /*while (!isStarted()) {
             if (gamepad1.a) {
                 sleepTime += 10;
             } else if (gamepad1.b) {
@@ -89,27 +89,25 @@ public class AutoBallBlue extends LinearOpMode {
             }
             telemetry.addData("waitTime: ", sleepTime);
         }
-        sleep(sleepTime);
+        sleep(sleepTime);*/
+        waitForStart();
 
         //moves diagonally along line to position for shooting
-        drive.xComp = 1;
-        drive.yComp = 0;
-        drive.rot = 0;
-        while (drive.driveToPosition(2000, .5) && opModeIsActive()) {}
+        drive.setValues(1, 1, -.5);
+        while (drive.driveToPosition(4000, .5) && opModeIsActive()) {}
 
         //fires gun
-        motorGun1.setPower(.35);
-        motorGun2.setPower(.35);
+        motorGun1.setPower(.4);
+        motorGun2.setPower(.4);
         sleep(4000);
         motorGun2.setPower(0);
         motorGun1.setPower(0);
 
-        //moves toward cap ball
+        drive.setValues(1, 1, 0);
         while (drive.driveToPosition(3000, 1) && opModeIsActive()) {}
 
         //rotates to pull ball off base plate
-        drive.xComp = 0;
-        drive.rot = 1;
+        drive.setValues(0, 0, 1);
         while (drive.driveToPosition(2500, 1) && opModeIsActive()) {}
     }
 }

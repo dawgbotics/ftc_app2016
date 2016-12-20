@@ -97,24 +97,23 @@ public class AutoTwoBeaconRed extends LinearVisionOpMode {
         cameraControl.setAutoExposureCompensation();
 
         //waits for start after 10 seconds and allows you to set initial delay
-        while (runtime.seconds() < 10 && opModeIsActive() ) {
+        /*while (runtime.seconds() < 10 && opModeIsActive() ) {
             if (gamepad1.a) {
                 sleepTime += 10;
             } else if (gamepad1.b) {
                 sleepTime -= 10;
             }
             telemetry.addData("waitTime: ", sleepTime);
-        }
+        }*/
         waitForStart();
-        sleep(sleepTime);
+        ///sleep(sleepTime);
 
         //drives at diagonal to first beacon
-        drive.xComp = 1;
-        drive.yComp = -1;
-        drive.rot = 0;
-        while (drive.driveToPosition(4000, .5) && opModeIsActive()) {}
+        drive.setValues(.63, -1, 0);
+        while (drive.driveToPosition(7900, .5) && opModeIsActive()) {}
 
         //senses becon color and moves to that side
+        sleep(400);
         drive.xComp = 0;
         boolean done = false;
         String s;
@@ -132,19 +131,18 @@ public class AutoTwoBeaconRed extends LinearVisionOpMode {
         while (drive.driveToPosition(150, .3) && opModeIsActive()) {}
 
         //presses beacon then moves back
-        drive.xComp = 1;
-        drive.yComp = 0;
-        while (drive.driveToPosition(1000, .4) && opModeIsActive()) {}
+        drive.setValues(1, 0, 0);
+        while (drive.driveToPosition(1300, .4) && opModeIsActive()) {}
 
-        drive.xComp = -1;
-        while (drive.driveToPosition(1000, .5) && opModeIsActive()) {}
+        drive.setValues(-1, 0, 0);
+        while (drive.driveToPosition(1300, .5) && opModeIsActive()) {}
 
         //moves towards next beacon
-        drive.xComp = 0;
-        drive.yComp = -1;
-        while (drive.driveToPosition(3000, .5) && opModeIsActive()) {}
+        drive.setValues(-.07, -1, 0);
+        while (drive.driveToPosition(4200, .5) && opModeIsActive()) {}
 
         //senses color and moves to that side
+        sleep(4000);
         done = false;
         while (!done && opModeIsActive()) {
             s = beacon.getAnalysis().getColorString();
@@ -160,17 +158,17 @@ public class AutoTwoBeaconRed extends LinearVisionOpMode {
         while (drive.driveToPosition(150, .3) && opModeIsActive()) {}
 
         //presses button
-        drive.xComp = 1;
-        drive.yComp = 0;
-        while (drive.driveToPosition(1000, .4) && opModeIsActive()) {}
+        drive.setValues(1, 0, 0);
+        while (drive.driveToPosition(1300, .4) && opModeIsActive()) {}
 
         drive.reset();
 
         //rotates while moving toward center goal
-        drive.xComp = -1;
-        drive.rot = -1;
-        drive.yComp = .2;
-        while (drive.driveToPosition(6000, .2) && opModeIsActive()) {}
+        drive.setValues(-1, 0, 0);
+        while (drive.driveToPosition(1500, .4) && opModeIsActive()) {}
+
+        drive.setValues(0, .5, -.83);
+        while (drive.driveToPosition(5400, .4) && opModeIsActive()) {}
 
         //fires gun
         motorGun1.setPower(.35);
@@ -182,15 +180,13 @@ public class AutoTwoBeaconRed extends LinearVisionOpMode {
         drive.reset();
 
         //moves and hits cap ball
-        drive.rot = 0;
-        drive.xComp = -1;
-        drive.yComp = 1;
-        while (drive.driveToPosition(3000, 1) && opModeIsActive()) {}
+        drive.setValues(1, 0, 0);
+        while (drive.driveToPosition(3000, .6) && opModeIsActive()) {}
 
         //rotates to push cap ball off bse plate
-        drive.xComp = 0;
+        /*drive.xComp = 0;
         drive.yComp = 0;
         drive.rot = 1;
-        while (drive.driveToPosition(5000, 1) && opModeIsActive()) {}
+        while (drive.driveToPosition(5000, 1) && opModeIsActive()) {}*/
     }
 }

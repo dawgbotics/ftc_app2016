@@ -55,6 +55,13 @@ public class TeleOpOmni extends OpMode {
 
     Servo motorHand;
 
+    boolean driveN;
+
+    double returnX = 0;
+    double returnY = 0;
+
+    double num = 0;
+
     private final static float SLOWEST_SPEED_FACTOR = 6;
     private final static float MIDDLE_SPEED_FACTOR = 4;
     private final static float FASTEST_SPEED_FACTOR = 1;
@@ -68,6 +75,19 @@ public class TeleOpOmni extends OpMode {
         drive.yComp = -1 * gamepad1.left_stick_y;
         drive.rot = gamepad1.right_stick_x;
 
+        if (drive.xComp < .05 && drive.xComp > -.05) {
+            drive.xComp = 0;
+        }
+        if (drive.yComp < .05 && drive.yComp > -.05) {
+            drive.yComp = 0;
+        }
+
+        if (drive.yComp == 0 && drive.xComp == 0) {
+            driveN = true;
+        }else {
+            driveN = false;
+        }
+
         if (gamepad1.a) {
             drive.reset();
         }
@@ -76,18 +96,23 @@ public class TeleOpOmni extends OpMode {
             drive.rot = 0;
         }
 
+        if (gamepad1.dpad_up) {
+            drive.yComp += 1;
+        } else if (gamepad1.dpad_down) {
+            drive.yComp -= 1;
+        } else if (gamepad1.dpad_left) {
+            drive.xComp -= 1;
+        } else if (gamepad1.dpad_right) {
+            drive.xComp += 1;
+        }
+
         drive.useGyro();
 
         //This \/ is the controller dead zone
         if (drive.rot < .05 && drive.rot > -.05) {
             drive.rot = 0;
         }
-        if (drive.xComp < .05 && drive.xComp > -.05) {
-            drive.xComp = 0;
-        }
-        if (drive.yComp < .05 && drive.yComp > -.05) {
-            drive.yComp = 0;
-        }
+
         //This \/ sets a maximum speed (of 1) if you're rotating and driving simultaneously
         double speed = Math.sqrt(drive.xComp * drive.xComp + drive.yComp * drive.yComp) + Math.abs(drive.rot);
         if (speed > 1) {
@@ -161,7 +186,7 @@ public class TeleOpOmni extends OpMode {
         double power =  -gamepad2.left_stick_y / 2;
         power = Range.clip(power, 0, .5);
 
-        //Since the gears are interlocking, one motor needs to run backwards
+        //Since the gears are interlocking, one motor needs to run backwards **Motor is set to reverse, so it still takes positive values**
         motorGun1.setPower(power);
         motorGun2.setPower(power);
 
@@ -177,12 +202,35 @@ public class TeleOpOmni extends OpMode {
         }
         speed = speed/speedFactor;
 
-        drive.drive(speed, false);
+        //Sets field oriented drive or not. driveN is non-field oriented drive
+        if (driveN) {
+            drive.driveN(speed, false);
+        }else{
+            drive.drive(speed, false);
+        }
+
+        num++;
+
+        returnX += drive.xComp;
+
+        returnY += drive.yComp;
+
+        if(gamepad1.start) {
+            drive.resetEncoders();
+            returnX = 0;
+            returnY = 0;
+        }
+        telemetry.addData("encoders", drive.encoders());
+        telemetry.addData("x", returnX / num);
+        telemetry.addData("y", returnY / num);
     }
 
     @Override
     public void init() {
         drive = new Drive(hardwareMap, "gyro", telemetry);
+
+        drive.resetEncoders();
+        drive.runWithoutEncoders();
 
         motorGun1 = hardwareMap.dcMotor.get("gun 1");
         motorGun2 = hardwareMap.dcMotor.get("gun 2");

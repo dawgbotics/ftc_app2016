@@ -83,6 +83,12 @@ public class Drive {
         motorRightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
 
+    public int[] getEncoders() {
+        int[] data = {motorRightFront.getCurrentPosition(), motorLeftFront.getCurrentPosition(),
+                motorRightBack.getCurrentPosition(), motorLeftBack.getCurrentPosition()};
+        return data;
+    }
+
     /**
      * Runs the robot to the target location, returning true while it has not
      * reached the target then false once it has. Also speeds up and slows down
@@ -127,7 +133,6 @@ public class Drive {
     public void reset() {
         gyro.reset();
         oldGyro = OFFSET;
-        //newGyro = OFFSET;
     }
 
     /**
@@ -208,6 +213,45 @@ public class Drive {
         motorRightBack.setPower(speedWheel[3]);
     }
 
+    public void driveN(double speed, boolean useEncoders) {
+
+        if (useEncoders) {
+            this.runWithEncoders();
+        } else {
+            this.runWithoutEncoders();
+        }
+
+        double[] speedWheel = new double[4];
+
+        int m = Drive.OFFSET + 180;
+        for (int n = 0; n <= 3; n++) {
+            //This \/ rotates the control input to make it work on each motor and assigns the initial wheel power ratios
+            speedWheel[n] = xComp * Math.cos(Math.toRadians(m)) + yComp * Math.sin(Math.toRadians(m)) + ROT_RATIO * rot;
+            m += 90;
+            if (m > 360) {
+                m -= 360;
+            }
+
+        }
+
+        //In order to handle the problem if the values in speedWheel[] are greater than 1,
+        //this scales them so the ratio between the values stays the same, but makes sure they're
+        //less than 1. Then it multiplies it by speed to incorporate the speed at which
+        //you want the robot to go
+        double scaler = Math.abs(max(speedWheel[0], speedWheel[1], speedWheel[2], speedWheel[3]));
+        //if the scaler is 0, it will cause a divide by 0 error
+        if (scaler != 0) {
+            for (int n = 0; n < 4; n++) {
+                speedWheel[n] *= (speed / scaler);
+            }
+        }
+
+        //sets the wheel powers to the appropriate ratios
+        motorRightFront.setPower(speedWheel[0]);
+        motorLeftFront.setPower(speedWheel[1]);
+        motorLeftBack.setPower(speedWheel[2]);
+        motorRightBack.setPower(speedWheel[3]);
+    }
     /**
      * finds and returns the largest magnitude of four doubles
      *
@@ -233,5 +277,22 @@ public class Drive {
             }
         }
         return max;
+    }
+
+    public void setValues(double x, double y, double r){
+        if (!Double.isNaN(x)) {
+            this.xComp = x;
+        }
+        if (!Double.isNaN(y)) {
+            this.yComp = y;
+        }
+        if (!Double.isNaN(r)) {
+            this.rot = r;
+        }
+    }
+
+    public int encoders() {
+        return (int) max(motorLeftBack.getCurrentPosition(), motorLeftFront.getCurrentPosition(),
+                motorRightBack.getCurrentPosition(), motorRightFront.getCurrentPosition());
     }
 }

@@ -32,17 +32,10 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.*;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
-import org.lasarobotics.vision.android.Cameras;
-import org.lasarobotics.vision.ftc.resq.Beacon;
-import org.lasarobotics.vision.opmode.LinearVisionOpMode;
-import org.lasarobotics.vision.opmode.extensions.CameraControlExtension;
-import org.lasarobotics.vision.util.ScreenOrientation;
-import org.opencv.core.Size;
 
 /**
  * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
@@ -57,22 +50,29 @@ import org.opencv.core.Size;
  * Remove or comment out the @Disabled line to add this opmode to the Driver Station OpMode list
  */
 
-@com.qualcomm.robotcore.eventloop.opmode.Autonomous(name="AutoBall", group="autonomous")  // @Autonomous(...) is the other common choice
-public class AutoBallRed extends LinearOpMode {
+@com.qualcomm.robotcore.eventloop.opmode.Autonomous(name="Template: Linear OpMode", group="Linear Opmode")  // @Autonomous(...) is the other common choice
+public class HardwareTest extends LinearOpMode {
 
+    /* Declare OpMode members. */
     private ElapsedTime runtime = new ElapsedTime();
 
     Drive drive;
     DcMotor motorGun1;
     DcMotor motorGun2;
 
-    int sleepTime = 0;
+    DcMotor motorLeftBack;
+    DcMotor motorLeftFront;
+    DcMotor motorRightBack;
+    DcMotor motorRightFront;
 
     @Override
-    public void runOpMode() throws InterruptedException {
-        //sets up gun and drive motors
+    public void runOpMode() {
+
         drive = new Drive(hardwareMap, "gyro", telemetry);
         drive.resetEncoders();
+
+        Gyro gyro = new Gyro(hardwareMap, "gyro");
+
         motorGun1 = hardwareMap.dcMotor.get("gun 1");
         motorGun2 = hardwareMap.dcMotor.get("gun 2");
         motorGun1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -80,35 +80,63 @@ public class AutoBallRed extends LinearOpMode {
         motorGun1.setDirection(DcMotorSimple.Direction.REVERSE);
         motorGun2.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        //waits for start and allows you to set initial delay
-        /*while (!isStarted()) {
-            if (gamepad1.a) {
-                sleepTime += 10;
-            } else if (gamepad1.b) {
-                sleepTime -= 10;
-            }
-            telemetry.addData("waitTime: ", sleepTime);
+        motorLeftBack = hardwareMap.dcMotor.get("back left");
+        motorLeftFront = hardwareMap.dcMotor.get("front left");
+        motorRightBack = hardwareMap.dcMotor.get("back right");
+        motorRightFront = hardwareMap.dcMotor.get("front right");
+
+        motorLeftBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motorLeftFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motorRightBack.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motorRightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        motorLeftBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorLeftFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorRightBack.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorRightFront.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        motorLeftBack.setPower(0.618);
+        sleep(500);
+        motorLeftBack.setPower(0);
+        motorLeftFront.setPower(0.618);
+        sleep(500);
+        motorLeftFront.setPower(0);
+        motorRightBack.setPower(0.618);
+        sleep(500);
+        motorRightBack.setPower(0);
+        motorRightFront.setPower(0.618);
+        sleep(500);
+        motorRightFront.setPower(0);
+
+        if (Math.abs(motorLeftBack.getCurrentPosition()) - 30 > 0) {
+            telemetry.addData("leftBack: ", "good");
+        } else {
+            telemetry.addData("leftBack: ", "bad");
         }
-        sleep(sleepTime);*/
+
+        if (Math.abs(motorRightBack.getCurrentPosition()) - 30 > 0) {
+            telemetry.addData("rightBack: ", "good");
+        } else {
+            telemetry.addData("rightBack: ", "bad");
+        }
+
+        if (Math.abs(motorLeftFront.getCurrentPosition()) - 30 > 0) {
+            telemetry.addData("LeftFront: ", "good");
+        } else {
+            telemetry.addData("LeftFront: ", "bad");
+        }
+
+        if (Math.abs(motorRightFront.getCurrentPosition()) - 30 > 0) {
+            telemetry.addData("RightFront: ", "good");
+        } else {
+            telemetry.addData("RightFront: ", "bad");
+        }
+
+
+
         waitForStart();
+        runtime.reset();
 
-        //moves diagonally along line to position for shooting
-        drive.setValues(1, 1, -.4);
-        while (drive.driveToPosition(5000, .5) && opModeIsActive()) {}
 
-        //fires gun
-        motorGun1.setPower(.4);
-        motorGun2.setPower(.4);
-        sleep(4000);
-        motorGun2.setPower(0);
-        motorGun1.setPower(0);
-
-        //moves toward cap ball
-        drive.setValues(1, 1, 0);
-        while (drive.driveToPosition(3000, 1) && opModeIsActive()) {}
-
-        //rotates to pull ball off base plate
-        drive.setValues(0, 0, -1);
-        while (drive.driveToPosition(2500, 1) && opModeIsActive()) {}
     }
 }

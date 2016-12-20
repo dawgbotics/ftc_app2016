@@ -40,36 +40,19 @@ import org.lasarobotics.vision.ftc.resq.Beacon;
 import org.lasarobotics.vision.opmode.LinearVisionOpMode;
 import org.lasarobotics.vision.opmode.extensions.CameraControlExtension;
 import org.lasarobotics.vision.util.ScreenOrientation;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Size;
 
-@com.qualcomm.robotcore.eventloop.opmode.Autonomous(name="AutonomusRed", group="autonomous")  // @Autonomous(...) is the other common choice
-public class Autonomous extends LinearVisionOpMode {
-
-    private ElapsedTime runtime = new ElapsedTime();
-
-    Drive drive;
-    DcMotor motorGun1;
-    DcMotor motorGun2;
-    //VisionRectangle recrec;
-    int sleepTime = 0;
+@com.qualcomm.robotcore.eventloop.opmode.Autonomous(name="AutonomusTest", group="autonomous")  // @Autonomous(...) is the other common choice
+public class AutonomousTest extends LinearVisionOpMode {
+    ElapsedTime timer;
+    VisionRectangle recrec;
 
     @Override
     public void runOpMode() throws InterruptedException {
+        timer = new ElapsedTime();
         waitForVisionStart();
-
-
-        //sets up gun and drive motors
-        drive = new Drive(hardwareMap, "gyro", telemetry);
-        drive.resetEncoders();
-        motorGun1 = hardwareMap.dcMotor.get("gun 1");
-        motorGun2 = hardwareMap.dcMotor.get("gun 2");
-        motorGun1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        motorGun2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        motorGun1.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorGun2.setDirection(DcMotorSimple.Direction.FORWARD);
 
         //initializes camera
         this.setCamera(Cameras.PRIMARY);
@@ -85,103 +68,43 @@ public class Autonomous extends LinearVisionOpMode {
         rotation.setActivityOrientationFixed(ScreenOrientation.LANDSCAPE);
         cameraControl.setColorTemperature(CameraControlExtension.ColorTemperature.AUTO);
         cameraControl.setAutoExposureCompensation();
-        //this.recrec = new VisionRectangle();
+        this.recrec = new VisionRectangle();
 
-        /*waits for start after 10 seconds and allows you to set initial delay
-        while (runtime.seconds() < 10 && opModeIsActive()) {
-            if (gamepad1.a) {
-                sleepTime += 10;
-            } else if (gamepad1.b) {
-                sleepTime -= 10;
-            }
-            telemetry.addData("waitTime: ", sleepTime);
-        }*/
+
+        timer.reset();
         // Setup vision rectangle with specified image pattern
-  //      this.recrec.setup("legos");
+        this.recrec.setup("legos");
         waitForStart();
-        //sleep(sleepTime);
+        //telemetry.addData("time setup recrec", timer.seconds());
 
-        //drives diagonally towards beacon
-        drive.setValues(1, -1, 0);
-        while (drive.driveToPosition(9200, .5) && opModeIsActive()) {}
-
-        //moves in to get camera in better location
-        drive.setValues(1, 0, 0);
-        while (drive.driveToPosition(700, .4) && opModeIsActive()) {}
-
-        drive.setValues(0, 0, 0);
-/*
         // Grab the corners, and their average X value, of the image
+        timer.reset();
         Mat output = new Mat();
-        while (output.empty() && opModeIsActive()) {
+        while (output.empty()) {
             if (hasNewFrame()) {
                 output = this.recrec.processFrame(getFrameRgba(), getFrameGray());
                 discardFrame();
             }
         }
+        telemetry.addData("jesus process", timer.seconds());
+        timer.reset();
 
         Point p1 = new Point(output.get(0, 0));
         Point p2 = new Point(output.get(1, 0));
         Point p3 = new Point(output.get(2, 0));
         Point p4 = new Point(output.get(3, 0));
         double avgX = (p1.x + p2.x + p3.x + p4.x) / 4.0;
-        double move = (avgX-450);
-        if (move > 0) {
-            drive.setValues(0, -1, 0);
-        } else{
-            drive.setValues(0, 1, 0);
+        double move = (avgX-450)/200;
+        if (move > 1) {
+            move = 1;
+        } else if (move < -1) {
+            move = -1;
+        } else if (move < .1 && move > -.1) {
+            move = 0;
         }
-
-        while (drive.driveToPosition(move,  .5) && opModeIsActive()) {}
-*/
-        //senses beacon color and moves to that side
-        sleep(400);
-        boolean done = false;
-        String s;
-        while (!done && opModeIsActive()) {
-            s = beacon.getAnalysis().getColorString();
-            telemetry.addData("Color", s);
-            if (s.equals("red, blue")) {
-                drive.setValues(0, 1, 0);
-                done = true;
-            } else if (s.equals("blue, red")) {
-                drive.setValues(0, -1, 0);
-                done = true;
-            } else {
-                telemetry.addData("Beacon Analysis ", "Failed");
-            }
-        }
-
-        while (drive.driveToPosition(150, .3) && opModeIsActive()) {}
-
-        //presses button then moves away
-        drive.setValues(1, 0, 0);
-        while (drive.driveToPosition(1500, .4) && opModeIsActive()) {}
-
-        drive.setValues(-1, 0, 0);
-        while (drive.driveToPosition(1000, .5) && opModeIsActive()) {}
-
-        //turns toward center goal
-        drive.setValues(0, 0, 1);
-        while (drive.driveToPosition(3900, .4) && opModeIsActive()) {}
-
-        //fires gun
-        motorGun1.setPower(.5);
-        motorGun2.setPower(.5);
-        sleep(5000);
-        // wat
-        motorGun2.setPower(0);
-        motorGun1.setPower(0);
-
-        drive.reset();
-
-        //moves to hit cap ball
-        drive.setValues(1, 0, 0);
-        while (drive.driveToPosition(4500, 1) && opModeIsActive()) {}
-
-        //rotates to pull cap ball of base plate
-        drive.setValues(0, 0, 1);
-
-        while (drive.driveToPosition(5000, 1) && opModeIsActive()) {}
+        telemetry.addData("time get frame and corners", timer.seconds() );
+        telemetry.addData("Move: ", move);
+        //drive.yComp = move;
+        //while (drive.driveToPosition(1000,  Math.abs(move)) && opModeIsActive()) {}
     }
 }

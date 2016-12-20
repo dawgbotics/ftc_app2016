@@ -22,8 +22,7 @@ public class AutoTest extends LinearVisionOpMode {
     public void runOpMode() throws InterruptedException {
         waitForVisionStart();
         this.recrec = new VisionRectangle();
-        this.recrec.setImage("legos");
-        this.recrec.setup();
+        this.recrec.setup("legos");
 
         this.setCamera(Cameras.PRIMARY);
         this.setFrameSize(new Size(900, 900));
