@@ -53,8 +53,6 @@ public class TeleOpOmni extends OpMode {
     DcMotor motorIntake;
     DcMotor motorArm;
 
-    Servo motorHand;
-
     boolean driveN;
 
     double returnX = 0;
@@ -67,6 +65,26 @@ public class TeleOpOmni extends OpMode {
     private final static float FASTEST_SPEED_FACTOR = 1;
 
     double speedFactor = FASTEST_SPEED_FACTOR;
+
+    private boolean runCatapult = false;
+
+    /***** BUTTONS *****
+    GAMEPAD1:   Left stick x, y - movement
+                Right stick x - rotation
+                A - reset gyro
+                Dpad up, down, left, right - adjust robot
+                Right, left trigger - intake
+                X, Y, B - speed of robot
+                Start - reset
+
+                Free controls: Right/left bumpers
+
+     GAMEPAD2:  Right, left trigger - intake
+                Left stick y - gun
+                A - cock catapult
+
+                Free controls: Right stick x/y, Right/left bumper, Y, B, X, Dpad, Start, Right/left bumpers
+     ******************/
 
     @Override
     public void loop() {
@@ -145,42 +163,18 @@ public class TeleOpOmni extends OpMode {
             motorIntake.setPower(0);
         }
 
-        /*
-        //Code for both people to have control
-        boolean rightB1 = gamepad1.right_bumper;
-        boolean rightB2 = gamepad2.right_bumper;
-        boolean leftB1 = gamepad1.left_bumper;
-        boolean leftB2 = gamepad2.left_bumper;
-
-        //If a right and a left on any combination of controllers are being pushed, this is true.
-        boolean conflict = (rightB1 && leftB1) || (rightB2 && leftB2) ||
-                (rightB1 && leftB2) || (leftB1 && rightB2);
-
-        //If a right button is being pushed and there are no conflicts, go forwards
-        if ((rightB1 || rightB2) && !conflict) {
-            motorArm.setPower(1);
-        } //If a left button is being pushed and there are no conflicts, go backwards
-        else if ((leftB1 || leftB2) && !conflict) {
-            motorArm.setPower(-1);
-        } //If there are conflicts or no buttons are being pushed, stop the arm
-        else {
+        //Catapult
+        if (gamepad2.a) {
+            runCatapult = true;
+            motorArm.setPower(.75);
+        }
+        if (runCatapult && motorArm.getCurrentPosition() >= 500) {
+            runCatapult = false;
             motorArm.setPower(0);
+            motorArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            motorArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
-        */
 
-        //Code for gamepad2 to have control
-        double towerInput = gamepad2.right_stick_y;
-        towerInput = Range.clip(towerInput, -1, 1);
-
-        motorArm.setPower(towerInput);
-
-        //Hand
-        if (gamepad2.right_bumper) { //
-            motorHand.setPosition(Range.clip(motorHand.getPosition() + .005, 0, 1));
-        }
-        if (gamepad2.left_bumper) {
-            motorHand.setPosition(Range.clip(motorHand.getPosition() - .005, 0, 1));
-        }
 
         //Gun
         double power =  -gamepad2.left_stick_y / 2;
@@ -237,8 +231,7 @@ public class TeleOpOmni extends OpMode {
 
         motorIntake = hardwareMap.dcMotor.get("intake");
 
-        motorArm = hardwareMap.dcMotor.get("tower");
-        motorHand = hardwareMap.servo.get("hand");
+        motorArm = hardwareMap.dcMotor.get("catapult");
 
         motorGun1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motorGun2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -246,9 +239,7 @@ public class TeleOpOmni extends OpMode {
         motorGun2.setDirection(DcMotorSimple.Direction.FORWARD);
 
         motorIntake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        motorArm.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-        motorHand.setPosition(0);
+        motorArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
 }

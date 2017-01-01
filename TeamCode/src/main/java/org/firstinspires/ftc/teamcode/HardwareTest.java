@@ -65,6 +65,10 @@ public class HardwareTest extends LinearOpMode {
     DcMotor motorRightBack;
     DcMotor motorRightFront;
 
+    DcMotor motorIntake;
+
+    DcMotor motorArm;
+
     @Override
     public void runOpMode() {
 
@@ -79,6 +83,12 @@ public class HardwareTest extends LinearOpMode {
         motorGun2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motorGun1.setDirection(DcMotorSimple.Direction.REVERSE);
         motorGun2.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        motorIntake = hardwareMap.dcMotor.get("intake");
+        motorIntake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        motorArm = hardwareMap.dcMotor.get("catapult");
+        motorArm.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         motorLeftBack = hardwareMap.dcMotor.get("back left");
         motorLeftFront = hardwareMap.dcMotor.get("front left");
@@ -137,6 +147,39 @@ public class HardwareTest extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
+        //start gun test
+        motorGun1.setPower(.5);
+        motorGun2.setPower(.5);
 
+        //The dpad down exits the entire system, just in case.
+        while (!gamepad1.y || gamepad1.dpad_down) { //wait until the y button is pressed
+            sleep(1000);
+        }
+
+        //end gun test
+        motorGun1.setPower(0);
+        motorGun2.setPower(0);
+
+        //start intake test
+        motorIntake.setPower(.75);
+
+        while (!gamepad1.b || gamepad1.dpad_down) { //wait until the b button is pressed
+            sleep(1000);
+        }
+
+        //end intake test
+        motorIntake.setPower(0);
+
+        //start catapult test
+        motorArm.setPower(.75);
+
+        while (!gamepad1.a || gamepad1.dpad_down) { //wait until the a button is pressed
+            sleep(1000);
+        }
+
+        //end catapult test
+        motorArm.setPower(0);
+
+        //y, b, a, x (buttons clockwise from top)
     }
 }

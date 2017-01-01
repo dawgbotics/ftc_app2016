@@ -47,7 +47,7 @@ public class Gyro {
         gyroReader.engage();
         gyroReader.write8(LOW_ODR, 0x00, true); // Sets return rate to default
         gyroReader.write8(CTRL4, 0x00, true); // enables x, y, and z
-        gyroReader.write8(CTRL1, 0x6F, true);// enables gyo
+        gyroReader.write8(CTRL1, 0x6F, true);// enables gyro
     }
 
     /**
@@ -108,9 +108,9 @@ public class Gyro {
             diff[i] = (gyroValues[i] +  OFFSET) * (timer.milliseconds() - oldTime);
         }
 
-        angleX += diff[1];
-        angleY += diff[2];
-        angleZ += diff[3];
+        angleX += diff[0];
+        angleY += diff[1];
+        angleZ += diff[2];
 
     }
 

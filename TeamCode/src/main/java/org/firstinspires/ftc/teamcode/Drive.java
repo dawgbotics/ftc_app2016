@@ -64,7 +64,7 @@ public class Drive {
     }
 
     /**
-     * sets all the motors to run not using the PID algorithms and encoders
+     * sets all the motors to run NOT using the PID algorithms and encoders
      */
     public void runWithoutEncoders(){
         motorLeftBack.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -93,9 +93,9 @@ public class Drive {
      * Runs the robot to the target location, returning true while it has not
      * reached the target then false once it has. Also speeds up and slows down
      *
-     * @param targetTicks the tick count you want o reach with at least one of your motors
+     * @param targetTicks the tick count you want to reach with at least one of your motors
      * @param speed speed at which to travel
-     * @return returns if it is still not completed yet
+     * @return returns if it is still NOT completed yet
      */
     public boolean driveToPosition(double targetTicks, double speed) {
         telemetry.addData("Left Back: ", motorLeftBack.getCurrentPosition());
@@ -107,11 +107,11 @@ public class Drive {
         double currentTicks = max(motorLeftBack.getCurrentPosition(), motorLeftFront.getCurrentPosition(),
                motorRightBack.getCurrentPosition(), motorRightFront.getCurrentPosition());
         //if it has not reached the target, it tests if it is in the last or first fifth of the way there, and
-        //scales the speed such that it speds up and slows down to BASE_SPEED as it reaches the target
+        //scales the speed such that it speeds up and slows down to BASE_SPEED as it reaches the target
         if (currentTicks <= targetTicks) {
-            if (currentTicks / targetTicks > .8) {
+            if (currentTicks / targetTicks > .8) { //last fifth
                 speed *= BASE_SPEED + ((targetTicks - currentTicks) / (targetTicks / 5)) * (1 - BASE_SPEED);
-            } else if (currentTicks / targetTicks < .2) {
+            } else if (currentTicks / targetTicks < .2) { //first fifth
                 speed *= BASE_SPEED + (currentTicks / (targetTicks / 5)) * (1 - BASE_SPEED);
             }
         //if it has reached target, stop moving, reset encoders, and return false
@@ -121,6 +121,7 @@ public class Drive {
             this.runWithoutEncoders();
             return false;
         }
+        //if it hasn't reached the target, drive at the given speed, autocorrect any shifting off the path, and return true
         speed = Range.clip(speed, 0, 1);
         useGyro();
         drive(speed, true);
@@ -143,14 +144,14 @@ public class Drive {
         gyro.readZ();
         double r = 0;
         telemetry.addData("gyro", gyro.getAngleZ());
-        if (rot == 0) {
-            double gyroDiff = gyro.getAngleZ() - oldGyro;
+        if (rot == 0) { //if you're not supposed to have rotated, make sure you actually haven't
+            double gyroDiff = gyro.getAngleZ() - oldGyro; //hopefully is zero
             telemetry.addData("oldGyro: ", oldGyro);
             telemetry.addData("gyroDiff: ", gyroDiff);
             //If you're moving forwards and you drift, this should correct it.
             //Accounts for if you go from 1 degree to 360 degrees which is only a difference of one degree,
             //but the bot thinks that's 359 degree difference
-            //Scales -180 to 180 ==> -1 to 1
+            //Also scales -180 to 180 ==> -1 to 1
             if (gyroDiff < -180) {
                 r = (180 + gyroDiff) / 180 * 1.5;
             }else if (gyroDiff > 180) {
@@ -223,6 +224,7 @@ public class Drive {
 
         double[] speedWheel = new double[4];
 
+        //THIS LINE \/ IS THE ONLY LINE WHICH DIFFERS FROM DRIVE()
         int m = Drive.OFFSET + 180;
         for (int n = 0; n <= 3; n++) {
             //This \/ rotates the control input to make it work on each motor and assigns the initial wheel power ratios
@@ -252,6 +254,7 @@ public class Drive {
         motorLeftBack.setPower(speedWheel[2]);
         motorRightBack.setPower(speedWheel[3]);
     }
+
     /**
      * finds and returns the largest magnitude of four doubles
      *
@@ -279,6 +282,12 @@ public class Drive {
         return max;
     }
 
+    /**
+     * sets this.xComp, this.yComp, and this.zComp values to the given parameters
+     * @param x the value to set this.xComp to
+     * @param y the value to set this.yComp to
+     * @param r the value to set this.zComp to
+     */
     public void setValues(double x, double y, double r){
         if (!Double.isNaN(x)) {
             this.xComp = x;
