@@ -83,12 +83,6 @@ public class Drive {
         motorRightFront.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
 
-    public int[] getEncoders() {
-        int[] data = {motorRightFront.getCurrentPosition(), motorLeftFront.getCurrentPosition(),
-                motorRightBack.getCurrentPosition(), motorLeftBack.getCurrentPosition()};
-        return data;
-    }
-
     /**
      * Runs the robot to the target location, returning true while it has not
      * reached the target then false once it has. Also speeds up and slows down
@@ -109,14 +103,16 @@ public class Drive {
         //if it has not reached the target, it tests if it is in the last or first fifth of the way there, and
         //scales the speed such that it speeds up and slows down to BASE_SPEED as it reaches the target
         if (currentTicks <= targetTicks) {
+            double difference = targetTicks / 5;
             if (currentTicks / targetTicks > .8) { //last fifth
-                speed *= BASE_SPEED + ((targetTicks - currentTicks) / (targetTicks / 5)) * (1 - BASE_SPEED);
+                difference = targetTicks - currentTicks;
             } else if (currentTicks / targetTicks < .2) { //first fifth
-                speed *= BASE_SPEED + (currentTicks / (targetTicks / 5)) * (1 - BASE_SPEED);
+                difference = currentTicks;
             }
-        //if it has reached target, stop moving, reset encoders, and return false
+            speed *= BASE_SPEED + (difference / (targetTicks / 5)) * (1 - BASE_SPEED);
+            //if it has reached target, stop moving, reset encoders, and return false
         } else {
-            drive(0, false);
+            drive(0, false, true);
             this.resetEncoders();
             this.runWithoutEncoders();
             return false;
@@ -124,16 +120,16 @@ public class Drive {
         //if it hasn't reached the target, drive at the given speed, autocorrect any shifting off the path, and return true
         speed = Range.clip(speed, 0, 1);
         useGyro();
-        drive(speed, true);
+        drive(speed, true, true);
         return true;
     }
 
     /**
      * resets the gyro value to the OFFSET value
      */
-    public void reset() {
-        gyro.reset();
-        oldGyro = OFFSET;
+    public void reset(int position) {
+        gyro.reset(position);
+        oldGyro = (OFFSET + position) % 360;
     }
 
     /**
@@ -153,11 +149,11 @@ public class Drive {
             //but the bot thinks that's 359 degree difference
             //Also scales -180 to 180 ==> -1 to 1
             if (gyroDiff < -180) {
-                r = (180 + gyroDiff) / 180 * 1.5;
+                r = (180 + gyroDiff) / 180 * 1.25;
             }else if (gyroDiff > 180) {
-                r = (180 - gyroDiff) / 180 * 1.5;
+                r = (180 - gyroDiff) / 180 * 1.25;
             }else {
-                r = (gyroDiff) / 180 * 1.5;
+                r = (gyroDiff) / 180 * 1.25;
             }
         } else {
             //If the bot is turning, then update the gyro data in drive again
@@ -174,7 +170,7 @@ public class Drive {
      * @param speed speed at which to move robot, 0 to 1
      * @param useEncoders enables or disables PID and encoder control
      */
-    public void drive(double speed, boolean useEncoders) {
+    public void drive(double speed, boolean useEncoders, boolean useGyro) {
 
         if (useEncoders) {
             this.runWithEncoders();
@@ -184,14 +180,18 @@ public class Drive {
 
         double[] speedWheel = new double[4];
 
-        int m = oldGyro;
+        int m;
+        if (useGyro) {
+            m = oldGyro;
+        }
+        else {
+            m = Drive.OFFSET;
+        }
+
         for (int n = 0; n <= 3; n++) {
             //This \/ rotates the control input to make it work on each motor and assigns the initial wheel power ratios
             speedWheel[n] = xComp * Math.cos(Math.toRadians(m)) + yComp * Math.sin(Math.toRadians(m)) + ROT_RATIO * rot;
-            m += 90;
-            if (m > 360) {
-                m -= 360;
-            }
+            m = (m + 90) % 360;
 
         }
 
@@ -214,7 +214,7 @@ public class Drive {
         motorRightBack.setPower(speedWheel[3]);
     }
 
-    public void driveN(double speed, boolean useEncoders) {
+    /*public void driveN(double speed, boolean useEncoders) {
 
         if (useEncoders) {
             this.runWithEncoders();
@@ -225,7 +225,6 @@ public class Drive {
         double[] speedWheel = new double[4];
 
         //THIS LINE \/ IS THE ONLY LINE WHICH DIFFERS FROM DRIVE()
-        int m = Drive.OFFSET + 180;
         for (int n = 0; n <= 3; n++) {
             //This \/ rotates the control input to make it work on each motor and assigns the initial wheel power ratios
             speedWheel[n] = xComp * Math.cos(Math.toRadians(m)) + yComp * Math.sin(Math.toRadians(m)) + ROT_RATIO * rot;
@@ -254,6 +253,7 @@ public class Drive {
         motorLeftBack.setPower(speedWheel[2]);
         motorRightBack.setPower(speedWheel[3]);
     }
+    */
 
     /**
      * finds and returns the largest magnitude of four doubles
@@ -298,10 +298,5 @@ public class Drive {
         if (!Double.isNaN(r)) {
             this.rot = r;
         }
-    }
-
-    public int encoders() {
-        return (int) max(motorLeftBack.getCurrentPosition(), motorLeftFront.getCurrentPosition(),
-                motorRightBack.getCurrentPosition(), motorRightFront.getCurrentPosition());
     }
 }

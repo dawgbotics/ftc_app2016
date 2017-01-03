@@ -26,7 +26,7 @@ public class Gyro {
 
     private ElapsedTime timer;
     private double oldTime = 0;
-    final static double OFFSET = .08;
+    final static double OFFSET = .1;
     final static double SCALE = 440;
 
     static final I2cAddr GYRO_ADDRESS = new I2cAddr(0x6B);
@@ -62,8 +62,8 @@ public class Gyro {
     /**
      * resets gyro, setting angle back to zero
      */
-    public void reset() {
-        this.angleZ = 0;
+    public void reset(int position) {
+        this.angleZ = 0 + position * SCALE;
         this.angleY = 0;
         this.angleX = 0;
     }

@@ -164,7 +164,7 @@ public class AutoTwoBeaconBlue extends LinearVisionOpMode {
         drive.yComp = 0;
         while (drive.driveToPosition(1000, .4) && opModeIsActive()) {}
 
-        drive.reset();
+        drive.reset(0);
 
         //rotates while moving toward center goal
         drive.xComp = -1;
@@ -179,7 +179,7 @@ public class AutoTwoBeaconBlue extends LinearVisionOpMode {
         motorGun2.setPower(0);
         motorGun1.setPower(0);
 
-        drive.reset();
+        drive.reset(0);
 
         //moves and hits cap ball
         drive.rot = 0;

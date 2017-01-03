@@ -48,21 +48,24 @@ public class TeleOpOmni extends OpMode {
     Drive drive;
 
     DcMotor motorGun1;
-    DcMotor motorGun2;
 
     DcMotor motorIntake;
+
     DcMotor motorArm;
+    DcMotor motorArm2;
+
+    Servo servoButton;
 
     boolean driveN;
 
-    double returnX = 0;
-    double returnY = 0;
+    private static final float SLOWEST_SPEED_FACTOR = 6;
+    private static final float MIDDLE_SPEED_FACTOR = 4;
+    private static final float FASTEST_SPEED_FACTOR = 1;
 
-    double num = 0;
-
-    private final static float SLOWEST_SPEED_FACTOR = 6;
-    private final static float MIDDLE_SPEED_FACTOR = 4;
-    private final static float FASTEST_SPEED_FACTOR = 1;
+    //CURRENTLY ARBITRARY, NEEDS REFINEMENT
+    public static final double BUTTON_MIDDLE = .35;
+    public static final double BUTTON_LEFT = 0.1;
+    public static final double BUTTON_RIGHT = .6;
 
     double speedFactor = FASTEST_SPEED_FACTOR;
 
@@ -82,6 +85,7 @@ public class TeleOpOmni extends OpMode {
      GAMEPAD2:  Right, left trigger - intake
                 Left stick y - gun
                 A - cock catapult
+                X, B - button pusher (left, right)
 
                 Free controls: Right stick x/y, Right/left bumper, Y, B, X, Dpad, Start, Right/left bumpers
      ******************/
@@ -106,22 +110,28 @@ public class TeleOpOmni extends OpMode {
             driveN = false;
         }
 
-        if (gamepad1.a) {
-            drive.reset();
-        }
-
         if (drive.rot < .05 && drive.rot > -.05) {
             drive.rot = 0;
         }
 
-        if (gamepad1.dpad_up) {
+        if (gamepad1.dpad_up && !gamepad1.a) {
             drive.yComp += 1;
-        } else if (gamepad1.dpad_down) {
+        } else if (gamepad1.dpad_down && !gamepad1.a) {
             drive.yComp -= 1;
-        } else if (gamepad1.dpad_left) {
+        } else if (gamepad1.dpad_left && !gamepad1.a) {
             drive.xComp -= 1;
-        } else if (gamepad1.dpad_right) {
+        } else if (gamepad1.dpad_right && !gamepad1.a) {
             drive.xComp += 1;
+        }
+
+        if (gamepad1.dpad_up && gamepad1.a) {
+            drive.reset(0);
+        } else if (gamepad1.dpad_down && gamepad1.a) {
+            drive.reset(180);
+        } else if (gamepad1.dpad_left && gamepad1.a) {
+            drive.reset(90);
+        } else if (gamepad1.dpad_right && gamepad1.a) {
+            drive.reset(270);
         }
 
         drive.useGyro();
@@ -167,22 +177,33 @@ public class TeleOpOmni extends OpMode {
         if (gamepad2.a) {
             runCatapult = true;
             motorArm.setPower(.75);
+            motorArm2.setPower(.75);
         }
         if (runCatapult && motorArm.getCurrentPosition() >= 500) {
             runCatapult = false;
             motorArm.setPower(0);
+            motorArm2.setPower(0);
             motorArm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             motorArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
 
+        //Button pusher
+        if (gamepad2.x) { //left button
+            servoButton.setPosition(BUTTON_LEFT);
+        }
+        else if (gamepad2.b) { //right button
+            servoButton.setPosition(BUTTON_RIGHT);
+        }
+        else { //middle
+            servoButton.setPosition(BUTTON_MIDDLE);
+        }
 
-        //Gun
-        double power =  -gamepad2.left_stick_y / 2;
-        power = Range.clip(power, 0, .5);
+        //Gun at full power
+        double power =  -gamepad2.left_stick_y;
+        power = Range.clip(power, 0, 1);
 
         //Since the gears are interlocking, one motor needs to run backwards **Motor is set to reverse, so it still takes positive values**
         motorGun1.setPower(power);
-        motorGun2.setPower(power);
 
         //If you push X, you get the slowest speed
         //If you push Y, you get the middle speed
@@ -198,48 +219,39 @@ public class TeleOpOmni extends OpMode {
 
         //Sets field oriented drive or not. driveN is non-field oriented drive
         if (driveN) {
-            drive.driveN(speed, false);
+            drive.drive(speed, false, false);
         }else{
-            drive.drive(speed, false);
+            drive.drive(speed, false, true);
         }
-
-        num++;
-
-        returnX += drive.xComp;
-
-        returnY += drive.yComp;
-
-        if(gamepad1.start) {
-            drive.resetEncoders();
-            returnX = 0;
-            returnY = 0;
-        }
-        telemetry.addData("encoders", drive.encoders());
-        telemetry.addData("x", returnX / num);
-        telemetry.addData("y", returnY / num);
     }
 
     @Override
     public void init() {
         drive = new Drive(hardwareMap, "gyro", telemetry);
-
+//brendan is a meme
         drive.resetEncoders();
         drive.runWithoutEncoders();
 
         motorGun1 = hardwareMap.dcMotor.get("gun 1");
-        motorGun2 = hardwareMap.dcMotor.get("gun 2");
 
         motorIntake = hardwareMap.dcMotor.get("intake");
 
         motorArm = hardwareMap.dcMotor.get("catapult");
+        motorArm2 = hardwareMap.dcMotor.get("catapult 2");
+
+        servoButton = hardwareMap.servo.get("button");
 
         motorGun1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        motorGun2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        motorGun1.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorGun2.setDirection(DcMotorSimple.Direction.FORWARD);
 
         motorIntake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
         motorArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorArm.setDirection(DcMotorSimple.Direction.FORWARD);
+        motorArm2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorArm2.setDirection(DcMotorSimple.Direction.REVERSE);
+
+
+        servoButton.setPosition(BUTTON_MIDDLE);
     }
 
 }

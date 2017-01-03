@@ -58,7 +58,6 @@ public class HardwareTest extends LinearOpMode {
 
     Drive drive;
     DcMotor motorGun1;
-    DcMotor motorGun2;
 
     DcMotor motorLeftBack;
     DcMotor motorLeftFront;
@@ -68,6 +67,7 @@ public class HardwareTest extends LinearOpMode {
     DcMotor motorIntake;
 
     DcMotor motorArm;
+    DcMotor motorArm2;
 
     @Override
     public void runOpMode() {
@@ -78,17 +78,19 @@ public class HardwareTest extends LinearOpMode {
         Gyro gyro = new Gyro(hardwareMap, "gyro");
 
         motorGun1 = hardwareMap.dcMotor.get("gun 1");
-        motorGun2 = hardwareMap.dcMotor.get("gun 2");
         motorGun1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        motorGun2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motorGun1.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorGun2.setDirection(DcMotorSimple.Direction.FORWARD);
 
         motorIntake = hardwareMap.dcMotor.get("intake");
         motorIntake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         motorArm = hardwareMap.dcMotor.get("catapult");
-        motorArm.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorArm2 = hardwareMap.dcMotor.get("catapult 2");
+        motorArm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorArm2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorArm.setDirection(DcMotorSimple.Direction.FORWARD);
+        motorArm2.setDirection(DcMotorSimple.Direction.REVERSE);
+
 
         motorLeftBack = hardwareMap.dcMotor.get("back left");
         motorLeftFront = hardwareMap.dcMotor.get("front left");
@@ -149,37 +151,59 @@ public class HardwareTest extends LinearOpMode {
 
         //start gun test
         motorGun1.setPower(.5);
-        motorGun2.setPower(.5);
 
-        //The dpad down exits the entire system, just in case.
-        while (!gamepad1.y || gamepad1.dpad_down) { //wait until the y button is pressed
-            sleep(1000);
+        while (!gamepad1.a) { //wait until the a button is pressed, then start the intake test
         }
-
         //end gun test
         motorGun1.setPower(0);
-        motorGun2.setPower(0);
+        sleep(1000);
 
         //start intake test
         motorIntake.setPower(.75);
 
-        while (!gamepad1.b || gamepad1.dpad_down) { //wait until the b button is pressed
-            sleep(1000);
+        while (!gamepad1.a) { //wait until the a button is pressed, then start the catapult test
         }
-
         //end intake test
         motorIntake.setPower(0);
+        sleep(1000);
 
         //start catapult test
         motorArm.setPower(.75);
+        motorArm2.setPower(.75);
 
-        while (!gamepad1.a || gamepad1.dpad_down) { //wait until the a button is pressed
-            sleep(1000);
+        while (!gamepad1.a) { //wait until the a button is pressed, then start the gyro test
         }
-
         //end catapult test
         motorArm.setPower(0);
+        motorArm2.setPower(0);
+        sleep(1000);
 
-        //y, b, a, x (buttons clockwise from top)
+        //start gyro test
+        gyro.readZ();
+        int oldZ = gyro.getAngleZ();
+
+        motorLeftBack.setPower(.75);
+        motorLeftFront.setPower(.75);
+        motorRightBack.setPower(.75);
+        motorRightFront.setPower(.75);
+
+        sleep(1000);
+
+        motorLeftBack.setPower(0);
+        motorLeftFront.setPower(0);
+        motorRightBack.setPower(0);
+        motorRightFront.setPower(0);
+
+        gyro.readZ();
+        int newZ = gyro.getAngleZ();
+
+        int diff = Math.abs(newZ - oldZ);
+        boolean gyroWorking = diff > 4;
+        if (gyroWorking) {
+            telemetry.addData("Gyro working, rotated: ", diff);
+        }
+        else {
+            telemetry.addData("Gyro not working", "");
+        }
     }
 }

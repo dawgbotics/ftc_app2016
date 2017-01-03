@@ -173,7 +173,7 @@ public class Autonomous extends LinearVisionOpMode {
         motorGun2.setPower(0);
         motorGun1.setPower(0);
 
-        drive.reset();
+        drive.reset(0);
 
         //moves to hit cap ball
         drive.setValues(1, 0, 0);
