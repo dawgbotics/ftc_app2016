@@ -56,16 +56,20 @@ public class TeleOpOmni extends OpMode {
 
     Servo servoButton;
 
+    Servo servoArmRelease;
+
     boolean driveN;
 
     private static final float SLOWEST_SPEED_FACTOR = 6;
     private static final float MIDDLE_SPEED_FACTOR = 4;
     private static final float FASTEST_SPEED_FACTOR = 1;
 
-    //CURRENTLY ARBITRARY, NEEDS REFINEMENT
     public static final double BUTTON_MIDDLE = .35;
     public static final double BUTTON_LEFT = 0.1;
     public static final double BUTTON_RIGHT = .6;
+
+    public static final double ARM_HELD = .5;
+    public static final double ARM_RELEASED = 0;
 
     double speedFactor = FASTEST_SPEED_FACTOR;
 
@@ -84,10 +88,11 @@ public class TeleOpOmni extends OpMode {
 
      GAMEPAD2:  Right, left trigger - intake
                 Left stick y - gun
+                Y - release catapult
                 A - cock catapult
                 X, B - button pusher (left, right)
 
-                Free controls: Right stick x/y, Right/left bumper, Y, B, X, Dpad, Start, Right/left bumpers
+                Free controls: Right stick x/y, Right/left bumpers, Dpad, Start
      ******************/
 
     @Override
@@ -158,6 +163,11 @@ public class TeleOpOmni extends OpMode {
         if (right2 < .05) { right2 = 0; }
         if (left2 < .05) { left2 = 0; }
 
+        telemetry.addData("right1", right1);
+        telemetry.addData("right2", right2);
+        telemetry.addData("left1", left1);
+        telemetry.addData("left2", left2);
+
         //If you push the right trigger, the intake runs forwards (defaults to gamepad1) (defaults to forwards)
         if (right1 > 0) {
             motorIntake.setPower(right1);
@@ -176,10 +186,10 @@ public class TeleOpOmni extends OpMode {
         //Catapult
         if (gamepad2.a) {
             runCatapult = true;
-            motorArm.setPower(.75);
-            motorArm2.setPower(.75);
+            motorArm.setPower(1);
+            motorArm2.setPower(1);
         }
-        if (runCatapult && motorArm.getCurrentPosition() >= 500) {
+        if (runCatapult && motorArm.getCurrentPosition() >= (9 * 1090)) {
             runCatapult = false;
             motorArm.setPower(0);
             motorArm2.setPower(0);
@@ -196,6 +206,11 @@ public class TeleOpOmni extends OpMode {
         }
         else { //middle
             servoButton.setPosition(BUTTON_MIDDLE);
+        }
+
+        //Arm releaser
+        if (gamepad2.y) {
+            servoArmRelease.setPosition(ARM_RELEASED);
         }
 
         //Gun at full power
@@ -240,6 +255,7 @@ public class TeleOpOmni extends OpMode {
         motorArm2 = hardwareMap.dcMotor.get("catapult 2");
 
         servoButton = hardwareMap.servo.get("button");
+        servoArmRelease = hardwareMap.servo.get("arm servo");
 
         motorGun1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
@@ -252,6 +268,7 @@ public class TeleOpOmni extends OpMode {
 
 
         servoButton.setPosition(BUTTON_MIDDLE);
+        servoArmRelease.setPosition(ARM_HELD);
     }
 
 }

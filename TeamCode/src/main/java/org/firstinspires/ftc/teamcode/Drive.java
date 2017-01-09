@@ -89,7 +89,7 @@ public class Drive {
      *
      * @param targetTicks the tick count you want to reach with at least one of your motors
      * @param speed speed at which to travel
-     * @return returns if it is still NOT completed yet
+     * @return returns if it is still NOT completed yet (true if hasn't reached target, false if it has)
      */
     public boolean driveToPosition(double targetTicks, double speed) {
         telemetry.addData("Left Back: ", motorLeftBack.getCurrentPosition());
@@ -149,11 +149,11 @@ public class Drive {
             //but the bot thinks that's 359 degree difference
             //Also scales -180 to 180 ==> -1 to 1
             if (gyroDiff < -180) {
-                r = (180 + gyroDiff) / 180 * 1.25;
+                r = (180 + gyroDiff) / 180;
             }else if (gyroDiff > 180) {
-                r = (180 - gyroDiff) / 180 * 1.25;
+                r = (180 - gyroDiff) / 180;
             }else {
-                r = (gyroDiff) / 180 * 1.25;
+                r = (gyroDiff) / 180;
             }
         } else {
             //If the bot is turning, then update the gyro data in drive again

@@ -33,6 +33,8 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.robocol.TelemetryMessage;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.lasarobotics.vision.android.Cameras;
@@ -52,7 +54,8 @@ public class Autonomous extends LinearVisionOpMode {
 
     Drive drive;
     DcMotor motorGun1;
-    DcMotor motorGun2;
+    Servo servoButton;
+    //DcMotor motorGun2;
     //VisionRectangle recrec;
     int sleepTime = 0;
 
@@ -65,11 +68,15 @@ public class Autonomous extends LinearVisionOpMode {
         drive = new Drive(hardwareMap, "gyro", telemetry);
         drive.resetEncoders();
         motorGun1 = hardwareMap.dcMotor.get("gun 1");
-        motorGun2 = hardwareMap.dcMotor.get("gun 2");
+        //motorGun2 = hardwareMap.dcMotor.get("gun 2");
         motorGun1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        motorGun2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        //motorGun2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motorGun1.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorGun2.setDirection(DcMotorSimple.Direction.FORWARD);
+        //motorGun2.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        //initializes servo
+        servoButton = hardwareMap.servo.get("button");
+        servoButton.setPosition(TeleOpOmni.BUTTON_MIDDLE);
 
         //initializes camera
         this.setCamera(Cameras.PRIMARY);
@@ -134,30 +141,39 @@ public class Autonomous extends LinearVisionOpMode {
 
         while (drive.driveToPosition(move,  .5) && opModeIsActive()) {}
 */
-        //senses beacon color and moves to that side
+
+        //senses beacon color
         sleep(400);
         boolean done = false;
         String s;
+        double pos = TeleOpOmni.BUTTON_MIDDLE; //the position to set the button pusher to
         while (!done && opModeIsActive()) {
             s = beacon.getAnalysis().getColorString();
             telemetry.addData("Color", s);
             if (s.equals("red, blue")) {
-                drive.setValues(0, 1, 0);
+                //drive.setValues(0, 1, 0);
+                pos = TeleOpOmni.BUTTON_LEFT;
                 done = true;
             } else if (s.equals("blue, red")) {
-                drive.setValues(0, -1, 0);
+                //drive.setValues(0, -1, 0);
+                pos = TeleOpOmni.BUTTON_RIGHT;
                 done = true;
             } else {
                 telemetry.addData("Beacon Analysis ", "Failed");
             }
         }
 
-        while (drive.driveToPosition(150, .3) && opModeIsActive()) {}
+        //while (drive.driveToPosition(150, .3) && opModeIsActive()) {}
 
-        //presses button then moves away
+        //moves forwards to press button
         drive.setValues(1, 0, 0);
         while (drive.driveToPosition(1500, .4) && opModeIsActive()) {}
 
+        //adjusts the button pusher
+        servoButton.setPosition(pos);
+        servoButton.setPosition(TeleOpOmni.BUTTON_MIDDLE);
+
+        //moves away from the beacon
         drive.setValues(-1, 0, 0);
         while (drive.driveToPosition(1000, .5) && opModeIsActive()) {}
 
@@ -167,10 +183,10 @@ public class Autonomous extends LinearVisionOpMode {
 
         //fires gun
         motorGun1.setPower(.5);
-        motorGun2.setPower(.5);
+        //motorGun2.setPower(.5);
         sleep(5000);
         // wat
-        motorGun2.setPower(0);
+        //motorGun2.setPower(0);
         motorGun1.setPower(0);
 
         drive.reset(0);
@@ -179,7 +195,7 @@ public class Autonomous extends LinearVisionOpMode {
         drive.setValues(1, 0, 0);
         while (drive.driveToPosition(4500, 1) && opModeIsActive()) {}
 
-        //rotates to pull cap ball of base plate
+        //rotates to pull cap ball off base plate
         drive.setValues(0, 0, 1);
 
         while (drive.driveToPosition(5000, 1) && opModeIsActive()) {}
