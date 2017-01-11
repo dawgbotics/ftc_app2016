@@ -141,41 +141,9 @@ public class Autonomous extends LinearVisionOpMode {
 
         while (drive.driveToPosition(move,  .5) && opModeIsActive()) {}
 */
-
-        //senses beacon color
-        sleep(400);
-        boolean done = false;
-        String s;
-        double pos = TeleOpOmni.BUTTON_MIDDLE; //the position to set the button pusher to
-        while (!done && opModeIsActive()) {
-            s = beacon.getAnalysis().getColorString();
-            telemetry.addData("Color", s);
-            if (s.equals("red, blue")) {
-                //drive.setValues(0, 1, 0);
-                pos = TeleOpOmni.BUTTON_LEFT;
-                done = true;
-            } else if (s.equals("blue, red")) {
-                //drive.setValues(0, -1, 0);
-                pos = TeleOpOmni.BUTTON_RIGHT;
-                done = true;
-            } else {
-                telemetry.addData("Beacon Analysis ", "Failed");
-            }
+        if (opModeIsActive()) {
+            drive.pushButton(drive.RED, drive, servoButton, true);
         }
-
-        //while (drive.driveToPosition(150, .3) && opModeIsActive()) {}
-
-        //moves forwards to press button
-        drive.setValues(1, 0, 0);
-        while (drive.driveToPosition(1500, .4) && opModeIsActive()) {}
-
-        //adjusts the button pusher
-        servoButton.setPosition(pos);
-        servoButton.setPosition(TeleOpOmni.BUTTON_MIDDLE);
-
-        //moves away from the beacon
-        drive.setValues(-1, 0, 0);
-        while (drive.driveToPosition(1000, .5) && opModeIsActive()) {}
 
         //turns toward center goal
         drive.setValues(0, 0, 1);

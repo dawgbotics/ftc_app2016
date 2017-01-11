@@ -2,16 +2,22 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Hardware;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
+
+import static org.lasarobotics.vision.opmode.VisionOpMode.beacon;
 
 public class Drive {
     //Initializes a factor for the speed of movement to a position
     public static final double BASE_SPEED = .4;
     //How much the robot is rotated when we start (as in, the wheels are in a diamond, not a square)
     public static final int OFFSET = 225;
+    //For the button pusher
+    public static final boolean RED = true;
+    public static final boolean BLUE = false;
 
     /***instance variables***/
 
@@ -297,6 +303,47 @@ public class Drive {
         }
         if (!Double.isNaN(r)) {
             this.rot = r;
+        }
+    }
+
+    /**
+     * pushes one of the buttons via the new self-aligning button pusher
+     * @param color true for red; false for blue
+     * @param drive the drive to control
+     * @param servoButton the servo to adjust the position of
+     * @param driveBack true if the robot should drive back, false if it shouldn't
+     */
+    public void pushButton(boolean color, Drive drive, Servo servoButton, boolean driveBack) {
+        //senses beacon color and moves to that side
+        drive.xComp = 0;
+        boolean done = false;
+        String s;
+        double pos = TeleOpOmni.BUTTON_MIDDLE; //the position to set the button pusher to
+        while (!done) {
+            s = beacon.getAnalysis().getColorString();
+            //telemetry.addData("Color", s);
+            if ((s.equals("red, blue") && color == RED) || (s.equals("blue, red") && color == BLUE)) {
+                pos = TeleOpOmni.BUTTON_LEFT;
+                done = true;
+            } else if ((s.equals("red, blue") && color == BLUE) || (s.equals("blue, red") && color == RED)) {
+                pos = TeleOpOmni.BUTTON_RIGHT;
+                done = true;
+            }
+        }
+
+        //moves forwards to press button
+        drive.setValues(1, 0, 0);
+        while (drive.driveToPosition(1500, .4)) {}
+
+        //adjusts the button pusher
+        servoButton.setPosition(pos);
+        servoButton.setPosition(TeleOpOmni.BUTTON_MIDDLE);
+
+        //moves back
+        if (driveBack) {
+            drive.setValues(-1, 0, 0);
+            while (drive.driveToPosition(1300, .5)) {
+            }
         }
     }
 }

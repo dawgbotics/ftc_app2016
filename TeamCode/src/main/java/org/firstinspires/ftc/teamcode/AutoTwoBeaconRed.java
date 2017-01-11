@@ -34,6 +34,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.lasarobotics.vision.android.Cameras;
@@ -65,6 +66,8 @@ public class AutoTwoBeaconRed extends LinearVisionOpMode {
     DcMotor motorGun1;
     DcMotor motorGun2;
 
+    Servo servoButton;
+
     int sleepTime = 0;
 
     @Override
@@ -80,6 +83,10 @@ public class AutoTwoBeaconRed extends LinearVisionOpMode {
         motorGun2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motorGun1.setDirection(DcMotorSimple.Direction.REVERSE);
         motorGun2.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        //initialize servo
+        servoButton = hardwareMap.servo.get("button");
+        servoButton.setPosition(TeleOpOmni.BUTTON_MIDDLE);
 
         //initializes camera
         this.setCamera(Cameras.PRIMARY);
@@ -114,52 +121,18 @@ public class AutoTwoBeaconRed extends LinearVisionOpMode {
 
         //senses becon color and moves to that side
         sleep(400);
-        drive.xComp = 0;
-        boolean done = false;
-        String s;
-        while (!done && opModeIsActive()) {
-            s = beacon.getAnalysis().getColorString();
-            //telemetry.addData("Color", s);
-            if (s.equals("red, blue")) {
-                drive.yComp = 1;
-                done = true;
-            } else if (s.equals("blue, red")) {
-                drive.yComp = -1;
-                done = true;
-            }
+
+        if (opModeIsActive()) {
+            drive.pushButton(drive.RED, drive, servoButton, true);
         }
-        while (drive.driveToPosition(150, .3) && opModeIsActive()) {}
-
-        //presses beacon then moves back
-        drive.setValues(1, 0, 0);
-        while (drive.driveToPosition(1300, .4) && opModeIsActive()) {}
-
-        drive.setValues(-1, 0, 0);
-        while (drive.driveToPosition(1300, .5) && opModeIsActive()) {}
 
         //moves towards next beacon
         drive.setValues(-.07, -1, 0);
         while (drive.driveToPosition(4200, .5) && opModeIsActive()) {}
 
-        //senses color and moves to that side
-        sleep(4000);
-        done = false;
-        while (!done && opModeIsActive()) {
-            s = beacon.getAnalysis().getColorString();
-            //telemetry.addData("Color", s);
-            if (s.equals("red, blue")) {
-                drive.yComp = 1;
-                done = true;
-            } else if (s.equals("blue, red")) {
-                drive.yComp = -1;
-                done = true;
-            }
+        if (opModeIsActive()) {
+            drive.pushButton(drive.RED, drive, servoButton, false);
         }
-        while (drive.driveToPosition(150, .3) && opModeIsActive()) {}
-
-        //presses button
-        drive.setValues(1, 0, 0);
-        while (drive.driveToPosition(1300, .4) && opModeIsActive()) {}
 
         drive.reset(0);
 

@@ -33,6 +33,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.lasarobotics.vision.android.Cameras;
@@ -53,6 +54,8 @@ public class AutonomousBlue extends LinearVisionOpMode {
     Drive drive;
     DcMotor motorGun1;
     DcMotor motorGun2;
+
+    Servo servoButton;
     //VisionRectangle recrec;
     int sleepTime = 0;
 
@@ -70,6 +73,10 @@ public class AutonomousBlue extends LinearVisionOpMode {
         motorGun2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         motorGun1.setDirection(DcMotorSimple.Direction.REVERSE);
         motorGun2.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        //initializes servo
+        servoButton = hardwareMap.servo.get("button");
+        servoButton.setPosition(TeleOpOmni.BUTTON_MIDDLE);
 
         //initializes camera
         this.setCamera(Cameras.PRIMARY);
@@ -134,32 +141,9 @@ public class AutonomousBlue extends LinearVisionOpMode {
 
         while (drive.driveToPosition(move,  .5) && opModeIsActive()) {}
 */
-        //senses beacon color and moves to that side
-        sleep(400);
-        boolean done = false;
-        String s;
-        while (!done && opModeIsActive()) {
-            s = beacon.getAnalysis().getColorString();
-            telemetry.addData("Color", s);
-            if (s.equals("red, blue")) {
-                drive.setValues(0, -1, 0);
-                done = true;
-            } else if (s.equals("blue, red")) {
-                drive.setValues(0, 1, 0);
-                done = true;
-            } else {
-                telemetry.addData("Beacon Analysis ", "Failed");
-            }
+        if (opModeIsActive()) {
+            drive.pushButton(drive.BLUE, drive, servoButton, true);
         }
-
-        while (drive.driveToPosition(150, .3) && opModeIsActive()) {}
-
-        //presses button then moves away
-        drive.setValues(1, 0, 0);
-        while (drive.driveToPosition(1700, .4) && opModeIsActive()) {}
-
-        drive.setValues(-1, 0, 0);
-        while (drive.driveToPosition(1000, .5) && opModeIsActive()) {}
 
         //turns toward center goal
         drive.setValues(0, 0, -1);
