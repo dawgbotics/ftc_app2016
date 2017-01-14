@@ -137,7 +137,7 @@ public class Gyro {
      */
     public int getAngleZ(){
         int returnAngle = (int)Math.round(angleZ / SCALE) + Drive.OFFSET;
-        returnAngle %= 360;
+        returnAngle = ((returnAngle % 360) + 360) % 360;
         return returnAngle;
     }
     /**

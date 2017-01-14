@@ -142,7 +142,7 @@ public class AutonomousBlue extends LinearVisionOpMode {
         while (drive.driveToPosition(move,  .5) && opModeIsActive()) {}
 */
         if (opModeIsActive()) {
-            drive.pushButton(drive.BLUE, drive, servoButton, true);
+            drive.pushButton(drive.BLUE, servoButton, true);
         }
 
         //turns toward center goal

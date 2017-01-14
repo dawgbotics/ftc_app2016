@@ -122,7 +122,7 @@ public class AutoTwoBeaconBlue extends LinearVisionOpMode {
         while (drive.driveToPosition(4000, .5) && opModeIsActive()) {}
 
         if (opModeIsActive()) {
-            drive.pushButton(drive.BLUE, drive, servoButton, true);
+            drive.pushButton(drive.BLUE, servoButton, true);
         }
 
         //moves towards next beacon
@@ -131,7 +131,7 @@ public class AutoTwoBeaconBlue extends LinearVisionOpMode {
         while (drive.driveToPosition(3000, .5) && opModeIsActive()) {}
 
         if (opModeIsActive()) {
-            drive.pushButton(drive.BLUE, drive, servoButton, false);
+            drive.pushButton(drive.BLUE, servoButton, false);
         }
 
         drive.reset(0);

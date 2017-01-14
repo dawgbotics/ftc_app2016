@@ -123,7 +123,7 @@ public class AutoTwoBeaconRed extends LinearVisionOpMode {
         sleep(400);
 
         if (opModeIsActive()) {
-            drive.pushButton(drive.RED, drive, servoButton, true);
+            drive.pushButton(drive.RED, servoButton, true);
         }
 
         //moves towards next beacon
@@ -131,7 +131,7 @@ public class AutoTwoBeaconRed extends LinearVisionOpMode {
         while (drive.driveToPosition(4200, .5) && opModeIsActive()) {}
 
         if (opModeIsActive()) {
-            drive.pushButton(drive.RED, drive, servoButton, false);
+            drive.pushButton(drive.RED, servoButton, false);
         }
 
         drive.reset(0);
