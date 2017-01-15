@@ -121,18 +121,64 @@ public class AutoTwoBeaconBlue extends LinearVisionOpMode {
         drive.rot = 0;
         while (drive.driveToPosition(4000, .5) && opModeIsActive()) {}
 
-        if (opModeIsActive()) {
-            drive.pushButton(drive.BLUE, servoButton, true);
+        //senses beacon color and moves to that side
+        drive.xComp = 0;
+        boolean done = false;
+        String s;
+        double pos = TeleOpOmni.BUTTON_MIDDLE; //the position to set the button pusher to
+        while (!done) {
+            s = beacon.getAnalysis().getColorString();
+            //telemetry.addData("Color", s);
+            if (s.equals("red, blue")) {
+                pos = TeleOpOmni.BUTTON_LEFT;
+                done = true;
+            } else if (s.equals("blue, red")) {
+                pos = TeleOpOmni.BUTTON_RIGHT;
+                done = true;
+            }
         }
+
+        //moves forwards to press button
+        drive.setValues(1, 0, 0);
+        while (drive.driveToPosition(1500, .4)) {}
+
+        //adjusts the button pusher
+        servoButton.setPosition(pos);
+        sleep(1000);
+        servoButton.setPosition(TeleOpOmni.BUTTON_MIDDLE);
+
+        drive.setValues(-1, 0, 0);
+        while (drive.driveToPosition(1300, .5))
 
         //moves towards next beacon
         drive.xComp = 0;
         drive.yComp = 1;
         while (drive.driveToPosition(3000, .5) && opModeIsActive()) {}
 
-        if (opModeIsActive()) {
-            drive.pushButton(drive.BLUE, servoButton, false);
+        //senses beacon color and moves to that side
+        drive.xComp = 0;
+        done = false;
+        pos = TeleOpOmni.BUTTON_MIDDLE; //the position to set the button pusher to
+        while (!done) {
+            s = beacon.getAnalysis().getColorString();
+            //telemetry.addData("Color", s);
+            if (s.equals("red, blue")) {
+                pos = TeleOpOmni.BUTTON_LEFT;
+                done = true;
+            } else if (s.equals("blue, red")) {
+                pos = TeleOpOmni.BUTTON_RIGHT;
+                done = true;
+            }
         }
+
+        //moves forwards to press button
+        drive.setValues(1, 0, 0);
+        while (drive.driveToPosition(1500, .4)) {}
+
+        //adjusts the button pusher
+        servoButton.setPosition(pos);
+        sleep(1000);
+        servoButton.setPosition(TeleOpOmni.BUTTON_MIDDLE);
 
         drive.reset(0);
 

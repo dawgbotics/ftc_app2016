@@ -2,22 +2,16 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.util.Hardware;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
-import static org.lasarobotics.vision.opmode.VisionOpMode.beacon;
-
 public class Drive {
     //Initializes a factor for the speed of movement to a position
-    public static final double BASE_SPEED = .4;
+    public static final double BASE_SPEED = .3;
     //How much the robot is rotated when we start (as in, the wheels are in a diamond, not a square)
     public static final int OFFSET = 225;
     //For the button pusher
-    public static final boolean RED = true;
-    public static final boolean BLUE = false;
 
     /***instance variables***/
 
@@ -104,28 +98,32 @@ public class Drive {
         telemetry.addData("Right Front: ", motorRightFront.getCurrentPosition());
 
         //finds the maximum of all encoder counts
-        double currentTicks = max(motorLeftBack.getCurrentPosition(), motorLeftFront.getCurrentPosition(),
+        double currentTicks = max(motorLeftBack.getCurrentPosition(),
+                motorLeftFront.getCurrentPosition(),
                motorRightBack.getCurrentPosition(), motorRightFront.getCurrentPosition());
-        //if it has not reached the target, it tests if it is in the last or first fifth of the way there, and
-        //scales the speed such that it speeds up and slows down to BASE_SPEED as it reaches the target
+        //if it has not reached the target, it tests if it is in the
+        // last or first fifth of the way there, and
+        //scales the speed such that it speeds up and slows down
+        // to BASE_SPEED as it reaches the target
         if (currentTicks <= targetTicks) {
-            double difference = targetTicks / 5;
-            if (currentTicks / targetTicks > .8) { //last fifth
+            double difference = targetTicks / 4;
+            if (currentTicks / targetTicks > .75) { //last fourth
                 difference = targetTicks - currentTicks;
-            } else if (currentTicks / targetTicks < .2) { //first fifth
+            } else if (currentTicks / targetTicks < .25) { //first fourth
                 difference = currentTicks;
             }
-            speed *= BASE_SPEED + (difference / (targetTicks / 5)) * (1 - BASE_SPEED);
+            speed *= BASE_SPEED + (difference / (targetTicks / 4)) * (1 - BASE_SPEED);
             //if it has reached target, stop moving, reset encoders, and return false
         } else {
             drive(0, false, true);
             this.resetEncoders();
-            this.runWithoutEncoders();
+            this.runWithEncoders();
             return false;
         }
-        //if it hasn't reached the target, drive at the given speed, autocorrect any shifting off the path, and return true
+        //if it hasn't reached the target, drive at the given speed, autocorrect any shifting
+        // off the path, and return true
         speed = Range.clip(speed, 0, 1);
-        useGyro();
+        //useGyro();
         drive(speed, true, true);
         return true;
     }
@@ -151,13 +149,14 @@ public class Drive {
             telemetry.addData("oldGyro: ", oldGyro);
             telemetry.addData("gyroDiff: ", gyroDiff);
             //If you're moving forwards and you drift, this should correct it.
-            //Accounts for if you go from 1 degree to 360 degrees which is only a difference of one degree,
+            //Accounts for if you go from 1 degree to 360 degrees
+            // which is only a difference of one degree,
             //but the bot thinks that's 359 degree difference
             //Also scales -180 to 180 ==> -1 to 1
             if (gyroDiff < -180) {
                 r = (180 + gyroDiff) / 180;
             }else if (gyroDiff > 180) {
-                r = (180 - gyroDiff) / 180;
+                r = (gyroDiff - 180) / 180;
             }else {
                 r = (gyroDiff) / 180;
             }
@@ -194,9 +193,15 @@ public class Drive {
             m = Drive.OFFSET;
         }
 
+        telemetry.addData("x", xComp);
+        telemetry.addData("y", yComp);
+        telemetry.addData("r", rot);
+
         for (int n = 0; n <= 3; n++) {
-            //This \/ rotates the control input to make it work on each motor and assigns the initial wheel power ratios
-            speedWheel[n] = xComp * Math.cos(Math.toRadians(m)) + yComp * Math.sin(Math.toRadians(m)) + ROT_RATIO * rot;
+            //This \/ rotates the control input to make it work on each motor
+            // and assigns the initial wheel power ratios
+            speedWheel[n] = xComp * Math.cos(Math.toRadians(m)) +
+                    yComp * Math.sin(Math.toRadians(m)) + ROT_RATIO * rot;
             m = (m + 90) % 360;
 
         }
@@ -219,47 +224,6 @@ public class Drive {
         motorLeftBack.setPower(speedWheel[2]);
         motorRightBack.setPower(speedWheel[3]);
     }
-
-    /*public void driveN(double speed, boolean useEncoders) {
-
-        if (useEncoders) {
-            this.runWithEncoders();
-        } else {
-            this.runWithoutEncoders();
-        }
-
-        double[] speedWheel = new double[4];
-
-        //THIS LINE \/ IS THE ONLY LINE WHICH DIFFERS FROM DRIVE()
-        for (int n = 0; n <= 3; n++) {
-            //This \/ rotates the control input to make it work on each motor and assigns the initial wheel power ratios
-            speedWheel[n] = xComp * Math.cos(Math.toRadians(m)) + yComp * Math.sin(Math.toRadians(m)) + ROT_RATIO * rot;
-            m += 90;
-            if (m > 360) {
-                m -= 360;
-            }
-
-        }
-
-        //In order to handle the problem if the values in speedWheel[] are greater than 1,
-        //this scales them so the ratio between the values stays the same, but makes sure they're
-        //less than 1. Then it multiplies it by speed to incorporate the speed at which
-        //you want the robot to go
-        double scaler = Math.abs(max(speedWheel[0], speedWheel[1], speedWheel[2], speedWheel[3]));
-        //if the scaler is 0, it will cause a divide by 0 error
-        if (scaler != 0) {
-            for (int n = 0; n < 4; n++) {
-                speedWheel[n] *= (speed / scaler);
-            }
-        }
-
-        //sets the wheel powers to the appropriate ratios
-        motorRightFront.setPower(speedWheel[0]);
-        motorLeftFront.setPower(speedWheel[1]);
-        motorLeftBack.setPower(speedWheel[2]);
-        motorRightBack.setPower(speedWheel[3]);
-    }
-    */
 
     /**
      * finds and returns the largest magnitude of four doubles
@@ -303,48 +267,6 @@ public class Drive {
         }
         if (!Double.isNaN(r)) {
             this.rot = r;
-        }
-    }
-
-    /**
-     * pushes one of the buttons via the new self-aligning button pusher
-     * @param color true for red; false for blue
-     * @param servoButton the servo to adjust the position of
-     * @param driveBack true if the robot should drive back, false if it shouldn't
-     */
-    public void pushButton(boolean color, Servo servoButton, boolean driveBack) {
-        //senses beacon color and moves to that side
-        this.xComp = 0;
-        boolean done = false;
-        String s;
-        double pos = TeleOpOmni.BUTTON_MIDDLE; //the position to set the button pusher to
-        while (!done) {
-            s = beacon.getAnalysis().getColorString();
-            //telemetry.addData("Color", s);
-            if ((s.equals("red, blue") && color == RED) ||
-                    (s.equals("blue, red") && color == BLUE)) {
-                pos = TeleOpOmni.BUTTON_LEFT;
-                done = true;
-            } else if ((s.equals("red, blue") && color == BLUE) ||
-                    (s.equals("blue, red") && color == RED)) {
-                pos = TeleOpOmni.BUTTON_RIGHT;
-                done = true;
-            }
-        }
-
-        //moves forwards to press button
-        this.setValues(1, 0, 0);
-        while (this.driveToPosition(1500, .4)) {}
-
-        //adjusts the button pusher
-        servoButton.setPosition(pos);
-        servoButton.setPosition(TeleOpOmni.BUTTON_MIDDLE);
-
-        //moves back
-        if (driveBack) {
-            this.setValues(-1, 0, 0);
-            while (this.driveToPosition(1300, .5)) {
-            }
         }
     }
 }
