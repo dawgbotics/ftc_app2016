@@ -59,11 +59,11 @@ public class Autonomous extends LinearVisionOpMode {
         waitForStart();
 
         drive.setValues(1, -1, 0);
-        while (drive.driveToPosition(9700, .6) && opModeIsActive()) {}
+        while (drive.driveToPosition(10550, .9) && opModeIsActive()) {}
 
         //moves in to get camera in better location
         drive.setValues(1, 0, 0);
-        while (drive.driveToPosition(700, .5) && opModeIsActive()) {}
+        while (drive.driveToPosition(500, .5) && opModeIsActive()) {}
 
         drive.setValues(0, 0, 0);
 
@@ -85,34 +85,31 @@ public class Autonomous extends LinearVisionOpMode {
 
         //moves forwards to press button
         drive.setValues(1, 0, 0);
-        while (drive.driveToPosition(1700, .4) && opModeIsActive()) {}
+        while (drive.driveToPosition(1600, .5) && opModeIsActive()) {}
 
         //adjusts the button pusher
         servoButton.setPosition(pos);
-        sleep(1000);
+        sleep(900);
         servoButton.setPosition(TeleOpOmni.BUTTON_MIDDLE);
 
         //moves forwards to press button
         drive.setValues(-1, 0, 0);
-        while (drive.driveToPosition(1300, .4) && opModeIsActive()) {}
+        while (drive.driveToPosition(3000, .7) && opModeIsActive()) {}
 
         //turns toward center goal
         drive.setValues(0, 0, 1);
-        while (drive.driveToPosition(3900, .3) && opModeIsActive()) {}
+        while (drive.driveToPosition(4300, .4) && opModeIsActive()) {}
 
         //fires gun
-        motorGun1.setPower(.85);
-        //motorGun2.setPower(.5);
-        sleep(5000);
-        // wat
-        //motorGun2.setPower(0);
+        motorGun1.setPower(1);
+        sleep(3000);
         motorGun1.setPower(0);
 
         drive.reset(0);
 
         //moves to hit cap ball
         drive.setValues(1, 0, 0);
-        while (drive.driveToPosition(4500, .9) && opModeIsActive()) {}
+        while (drive.driveToPosition(1500, .9) && opModeIsActive()) {}
 
         //rotates to pull cap ball off base plate
         drive.setValues(0, 0, 1);

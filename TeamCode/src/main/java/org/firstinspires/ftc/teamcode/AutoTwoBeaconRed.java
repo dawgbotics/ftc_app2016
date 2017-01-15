@@ -64,14 +64,9 @@ public class AutoTwoBeaconRed extends LinearVisionOpMode {
 
     Drive drive;
     DcMotor motorGun1;
-    DcMotor motorGun2;
 
     Servo servoButton;
-
-    public static final boolean RED = true;
-    public static final boolean BLUE = false;
-
-    int sleepTime = 0;
+    Servo armRelease;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -81,15 +76,14 @@ public class AutoTwoBeaconRed extends LinearVisionOpMode {
         drive = new Drive(hardwareMap, "gyro", telemetry);
         drive.resetEncoders();
         motorGun1 = hardwareMap.dcMotor.get("gun 1");
-        motorGun2 = hardwareMap.dcMotor.get("gun 2");
         motorGun1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        motorGun2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        motorGun1.setDirection(DcMotorSimple.Direction.REVERSE);
-        motorGun2.setDirection(DcMotorSimple.Direction.FORWARD);
+        motorGun1.setDirection(DcMotorSimple.Direction.FORWARD);
 
         //initialize servo
         servoButton = hardwareMap.servo.get("button");
+        armRelease = hardwareMap.servo.get("arm servo");
         servoButton.setPosition(TeleOpOmni.BUTTON_MIDDLE);
+        armRelease.setPosition(.5);
 
         //initializes camera
         this.setCamera(Cameras.PRIMARY);
@@ -106,31 +100,18 @@ public class AutoTwoBeaconRed extends LinearVisionOpMode {
         cameraControl.setColorTemperature(CameraControlExtension.ColorTemperature.AUTO);
         cameraControl.setAutoExposureCompensation();
 
-        //waits for start after 10 seconds and allows you to set initial delay
-        /*while (runtime.seconds() < 10 && opModeIsActive() ) {
-            if (gamepad1.a) {
-                sleepTime += 10;
-            } else if (gamepad1.b) {
-                sleepTime -= 10;
-            }
-            telemetry.addData("waitTime: ", sleepTime);
-        }*/
         waitForStart();
-        ///sleep(sleepTime);
 
         //drives at diagonal to first beacon
         drive.setValues(.63, -1, 0);
-        while (drive.driveToPosition(7900, .5) && opModeIsActive()) {}
-
-        //senses becon color and moves to that side
-        sleep(400);
+        while (drive.driveToPosition(8300, .8) && opModeIsActive()) {}
 
         //senses beacon color and moves to that side
         drive.xComp = 0;
         boolean done = false;
         String s;
         double pos = TeleOpOmni.BUTTON_MIDDLE; //the position to set the button pusher to
-        while (!done) {
+        while (!done && opModeIsActive()) {
             s = beacon.getAnalysis().getColorString();
             //telemetry.addData("Color", s);
             if (s.equals("red, blue")) {
@@ -144,22 +125,26 @@ public class AutoTwoBeaconRed extends LinearVisionOpMode {
 
         //moves forwards to press button
         drive.setValues(1, 0, 0);
-        while (drive.driveToPosition(1500, .4)) {}
+        while (drive.driveToPosition(1700, .3) && opModeIsActive()) {}
 
         //adjusts the button pusher
         servoButton.setPosition(pos);
         sleep(1000);
         servoButton.setPosition(TeleOpOmni.BUTTON_MIDDLE);
 
+        //moves forwards to press button
+        drive.setValues(-1, 0, 0);
+        while (drive.driveToPosition(900, .4) && opModeIsActive()) {}
+
         //moves towards next beacon
         drive.setValues(-.07, -1, 0);
-        while (drive.driveToPosition(4200, .5) && opModeIsActive()) {}
+        while (drive.driveToPosition(5300, .6) && opModeIsActive()) {}
 
         //senses beacon color and moves to that side
         drive.xComp = 0;
         done = false;
         pos = TeleOpOmni.BUTTON_MIDDLE; //the position to set the button pusher to
-        while (!done) {
+        while (!done && opModeIsActive()) {
             s = beacon.getAnalysis().getColorString();
             //telemetry.addData("Color", s);
             if (s.equals("red, blue")) {
@@ -173,7 +158,7 @@ public class AutoTwoBeaconRed extends LinearVisionOpMode {
 
         //moves forwards to press button
         drive.setValues(1, 0, 0);
-        while (drive.driveToPosition(1500, .4)) {}
+        while (drive.driveToPosition(1200, .3) && opModeIsActive()) {}
 
         //adjusts the button pusher
         servoButton.setPosition(pos);
@@ -184,16 +169,14 @@ public class AutoTwoBeaconRed extends LinearVisionOpMode {
 
         //rotates while moving toward center goal
         drive.setValues(-1, 0, 0);
-        while (drive.driveToPosition(1500, .4) && opModeIsActive()) {}
+        while (drive.driveToPosition(1500, .6) && opModeIsActive()) {}
 
-        drive.setValues(0, .5, -.83);
-        while (drive.driveToPosition(5400, .4) && opModeIsActive()) {}
+        drive.setValues(0, .7, -.78);
+        while (drive.driveToPosition(6500, .6) && opModeIsActive()) {}
 
         //fires gun
-        motorGun1.setPower(.35);
-        motorGun2.setPower(.35);
-        sleep(4000);
-        motorGun2.setPower(0);
+        motorGun1.setPower(1);
+        sleep(3000);
         motorGun1.setPower(0);
 
         drive.reset(0);
@@ -203,9 +186,7 @@ public class AutoTwoBeaconRed extends LinearVisionOpMode {
         while (drive.driveToPosition(3000, .6) && opModeIsActive()) {}
 
         //rotates to push cap ball off bse plate
-        /*drive.xComp = 0;
-        drive.yComp = 0;
-        drive.rot = 1;
-        while (drive.driveToPosition(5000, 1) && opModeIsActive()) {}*/
+        drive.setValues(0, 0, -1);
+        while (drive.driveToPosition(1500, 1) && opModeIsActive()) {}
     }
 }

@@ -112,7 +112,7 @@ public class Drive {
             } else if (currentTicks / targetTicks < .25) { //first fourth
                 difference = currentTicks;
             }
-            speed *= BASE_SPEED + (difference / (targetTicks / 4)) * (1 - BASE_SPEED);
+            speed *= (BASE_SPEED + (difference / (targetTicks / 4)) * (1 - BASE_SPEED));
             //if it has reached target, stop moving, reset encoders, and return false
         } else {
             drive(0, false, true);
@@ -123,7 +123,7 @@ public class Drive {
         //if it hasn't reached the target, drive at the given speed, autocorrect any shifting
         // off the path, and return true
         speed = Range.clip(speed, 0, 1);
-        //useGyro();
+        useGyro();
         drive(speed, true, true);
         return true;
     }
